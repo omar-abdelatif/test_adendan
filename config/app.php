@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Finance\FinanceServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\EventServiceProvider;
 use App\Providers\RouteServiceProvider;
@@ -221,6 +222,11 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         EventServiceProvider::class,
         RouteServiceProvider::class,
+
+        /*
+         * Module Service Providers...
+         */
+        FinanceServiceProvider::class,
 
     ],
 

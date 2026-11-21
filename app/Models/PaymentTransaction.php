@@ -23,6 +23,8 @@ class PaymentTransaction extends Model
         'paymob_intention_id',
         'paymob_transaction_id',
         'paymob_status',
+        'account',
+        'proof_img',
 
     ];
 

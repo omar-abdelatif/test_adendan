@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\NewsComments;
+use App\Models\Subscribers;
 use Illuminate\Http\Request;
 
 class NewsCommentsController extends Controller
@@ -21,13 +22,14 @@ class NewsCommentsController extends Controller
             'author' => 'required|string|max:255',
             'content' => 'required|string',
         ]);
+        $member = auth('sanctum')->user();
         $comment = NewsComments::create([
             'author' => $validatedData['author'],
             'content' => $validatedData['content'],
             'news_id' => $newsId,
             // Comments stay open to guests; a logged-in member becomes the comment's owner.
-            // user()->id, not id(): Subscribers uses `ssn` as its auth identifier.
-            'subscriber_id' => auth('sanctum')->user()?->id,
+            // The row id, not auth()->id(): Subscribers uses `ssn` as its auth identifier.
+            'subscriber_id' => $member instanceof Subscribers ? $member->id : null,
         ]);
 
         return response()->json([

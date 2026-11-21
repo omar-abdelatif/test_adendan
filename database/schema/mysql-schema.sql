@@ -312,10 +312,10 @@ DROP TABLE IF EXISTS `payment_transactions`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `payment_transactions` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `member_id` bigint unsigned NOT NULL,
+  `member_id` bigint unsigned DEFAULT NULL,
   `item` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `amount` int NOT NULL DEFAULT '0',
-  `inv_no` int NOT NULL DEFAULT '0',
+  `inv_no` int DEFAULT NULL,
   `payment_cat` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `payment_date` date DEFAULT NULL,
   `payment_method` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -325,11 +325,14 @@ CREATE TABLE `payment_transactions` (
   `paymob_transaction_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `paymob_status` enum('pending','paid','failed') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `transaction_cat` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `account` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `proof_img` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `payment_transactions_paymob_transaction_id_unique` (`paymob_transaction_id`),
   KEY `payment_transactions_member_id_foreign` (`member_id`),
+  KEY `payment_transactions_account_index` (`account`),
   CONSTRAINT `payment_transactions_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `subscribers` (`member_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -678,3 +681,4 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (55,'2026_11_21_000
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (56,'2026_11_21_000002_add_subscriber_id_to_news_comments_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (57,'2026_11_21_000003_align_schema_with_code',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (58,'2026_11_21_000004_allow_sms_subscribers_without_membership',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (60,'2026_11_21_000005_add_account_and_proof_to_payment_transactions',3);

@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * @property int|string $amount
+ */
 class TotalBank extends Model
 {
     use HasFactory, LogsActivity;
