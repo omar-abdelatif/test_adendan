@@ -109,24 +109,24 @@
                                     <tbody>
                                         @foreach ($transactions as $item)
                                             <tr>
-                                                <td class="text-center">{{$item->transaction_date}}</td>
+                                                <td class="text-center">{{$item->payment_date}}</td>
                                                 <td class="text-center">
-                                                    @if ($item->transaction_type === 'بنك/ايداع' || $item->transaction_type === 'ايداع')
+                                                    @if ($item->transaction_cat === 'ايداع' || $item->transaction_type === 'بنك/ايداع')
                                                         <span class="badge badge-success rounded-pill">إيداع</span>
                                                     @else
                                                         <span class="badge badge-danger rounded-pill">سحب</span>
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
-                                                    @if ($item->proof_img !== null)
+                                                    @if ($item->proof_url)
                                                         <button type="button" class="btn btn-transparent" data-bs-target="#proof_{{$item->id}}" data-bs-toggle="modal">
-                                                            <img src="{{asset('assets/images/withdraws/'.$item->proof_img)}}" width="70" class="rounded" alt="{{$item->proof_img}}">
+                                                            <img src="{{ $item->proof_url }}" width="70" class="rounded" alt="مستند المعاملة">
                                                         </button>
                                                         <div class="modal fade" id="proof_{{$item->id}}"  tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                                             <div class="modal-dialog modal-dialog-centered">
                                                                 <div class="modal-content">
                                                                     <div class="modal-body p-0">
-                                                                        <img src="{{asset('assets/images/withdraws/'.$item->proof_img)}}" class="rounded w-100" alt="{{$item->proof_img}}">
+                                                                        <img src="{{ $item->proof_url }}" class="rounded w-100" alt="مستند المعاملة">
                                                                     </div>
                                                                 </div>
                                                             </div>

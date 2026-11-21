@@ -179,21 +179,21 @@
                                                 @endif
                                             </td>
                                             <td class="text-center">
-                                                @if (is_numeric($transaction->inv_no))
-                                                    <span class="fw-bold">{{$transaction->inv_no}}</span>
-                                                @else
+                                                @if ($transaction->proof_url)
                                                     <button type="button" class="btn btn-transparent" data-bs-target="#inv_{{$transaction->id}}" data-bs-toggle="modal">
-                                                        <img src="{{asset('assets/images/withdraws/'.$transaction->inv_no)}}" width="70" class="rounded" alt="{{$transaction->inv_no}}">
+                                                        <img src="{{ $transaction->proof_url }}" width="70" class="rounded" alt="مستند المعاملة">
                                                     </button>
                                                     <div class="modal fade" id="inv_{{$transaction->id}}" tabindex="-1" aria-hidden="true">
                                                         <div class="modal-dialog modal-dialog-centered">
                                                             <div class="modal-content">
                                                                 <div class="modal-body p-0">
-                                                                    <img src="{{asset('assets/images/withdraws/'.$transaction->inv_no)}}" class="rounded w-100" alt="{{$transaction->inv_no}}">
+                                                                    <img src="{{ $transaction->proof_url }}" class="rounded w-100" alt="مستند المعاملة">
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                @else
+                                                    <span class="fw-bold">{{$transaction->inv_no ?? '-'}}</span>
                                                 @endif
                                             </td>
                                             <td class="text-center">

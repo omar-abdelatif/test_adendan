@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
@@ -42,27 +45,27 @@ class Subscribers extends Authenticatable
         'fcm_token',
     ];
 
-    public function dues()
+    public function dues(): HasMany
     {
         return $this->hasMany(Due::class, 'member_id', 'member_id');
     }
 
-    public function paymentTransactions()
+    public function paymentTransactions(): HasMany
     {
         return $this->hasMany(PaymentTransaction::class, 'member_id', 'member_id');
     }
 
-    public function donations()
+    public function donations(): HasMany
     {
         return $this->hasMany(Donations::class);
     }
 
-    public function tomb()
+    public function tomb(): BelongsTo
     {
         return $this->belongsTo(Tombs::class, 'tomb_name', 'title');
     }
 
-    public function smssubscribers()
+    public function smssubscribers(): HasOne
     {
         return $this->hasOne(SMSSubscribers::class, 'member_id', 'member_id');
     }

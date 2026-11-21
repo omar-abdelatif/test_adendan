@@ -15,7 +15,8 @@ class PaymentTransactionFactory extends Factory
     public function definition(): array
     {
         return [
-            'member_id' => fake()->numberBetween(1000, 999999),
+            // member_id references subscribers.member_id; set it when the row belongs to a member.
+            'member_id' => null,
             'item' => (string) now()->year,
             'amount' => 100,
             'inv_no' => fake()->unique()->numberBetween(1, 9999999),

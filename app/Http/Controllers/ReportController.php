@@ -20,32 +20,9 @@ class ReportController extends Controller
         $this->middleware('permission:التقارير');
     }
 
-    // ! Subscriptions Reports
-    public function index()
-    {
-        $subscribers = Subscribers::with('paymentTransactions')->where('status', '!=', 2)->get();
-        $subscriptions = $this->subscriptionFilter();
-        $count = $subscribers->count();
-        $currentSubscriptionYear = $this->currentSubscriptionYear();
-        $sumTotalSubscriptionDues = Due::where('transaction_type', 'إشتراك')->where('item', '!=', $currentSubscriptionYear)->sum('amount_remaining');
-        $sumDueDonationAmount = Due::where('transaction_type', 'تبرعات')->sum('total_amount');
-        $subscriptionSumDuePaied = Due::where('transaction_type', 'إشتراك')->sum('amount_paid');
-        $sumTotalCurrentSubscriptionDues = Due::where('transaction_type', 'إشتراك')->where('item', $currentSubscriptionYear)->sum('total_amount');
-        $sumTotalCurrentSubscriptionDuesPaid = PaymentTransaction::where('transaction_type', 'اشتراك')->whereYear('item', $currentSubscriptionYear)->sum('amount');
+    
 
-        return view('pages.reports.subscriptions', compact('subscribers', 'subscriptions', 'count', 'sumTotalSubscriptionDues', 'sumDueDonationAmount', 'subscriptionSumDuePaied', 'currentSubscriptionYear', 'sumTotalCurrentSubscriptionDues', 'sumTotalCurrentSubscriptionDuesPaid'));
-    }
-
-    public function subscriptionFilter()
-    {
-        $subscribers = Subscribers::with('paymentTransactions')->get();
-        $subscriptions = [];
-        foreach ($subscribers as $subscriber) {
-            $subscriptions[] = $subscriber->paymentTransactions;
-        }
-
-        return $subscriptions;
-    }
+    
 
     // ! Job Reports
     public function jobs(Request $request)
@@ -120,65 +97,13 @@ class ReportController extends Controller
         return [$locationKey, $locations, $message ?? null];
     }
 
-    // ! Donations
-    public function outerdonations()
-    {
-        $donators = OuterDonations::all();
+    
 
-        return view('pages.reports.donations', compact('donators'));
-    }
+    
 
-    public function innerDonations()
-    {
-        $donations = Donations::get();
-        $donationMoney = Donations::where('donation_type', 'مادي')->get();
-        $donationDeathCar = Donations::where('donation_category', 'ص.سيارة')->get();
-        $donationDeathCarSum = $donationDeathCar->sum('amount');
-        $donationTombs = Donations::where('donation_category', 'مقابر قديمة')->get();
-        $donationTombsSum = $donationTombs->sum('amount');
-        $donationHeadquarters = Donations::where('donation_category', 'ص.مقر')->get();
-        $donationHeadquartersSum = $donationHeadquarters->sum('amount');
-        $donationAffiliate = Donations::where('donation_category', 'تبرع إنتساب')->get();
-        $donationAffiliateSum = $donationAffiliate->sum('amount');
-        $donationDev = Donations::where('donation_category', 'تبرع تنمية')->get();
-        $donationDevSum = $donationDev->sum('amount');
-        $TotalOldDelays = Due::get();
-        $sumTotalOldDelaysDonations = $TotalOldDelays->where('transaction_type', 'تبرعات')->sum('amount');
+    
 
-        return view('pages.reports.inner_donations', compact([
-            'donations',
-            'donationDeathCarSum',
-            'donationTombsSum',
-            'donationHeadquartersSum',
-            'donationAffiliateSum',
-            'donationDevSum',
-            'sumTotalOldDelaysDonations',
-        ]));
-    }
-
-    // ! Safe
-    public function safe()
-    {
-        $transactions = PaymentTransaction::get();
-        $sumDonationsAmount = PaymentTransaction::whereIn('transaction_type', ['التبرعات', 'تبرعات', 'تبرع سنوي'])->sum('amount');
-        $sumSubscriptionsAmount = PaymentTransaction::whereIn('transaction_type', ['إشتراك جديد', 'إشتراك', 'اشتراك'])->sum('amount');
-        $withdrawalsAmount = PaymentTransaction::whereIn('transaction_cat', ['خزينة/سحب', 'سحب'])->sum('amount');
-        $totalSafeAmount = PaymentTransaction::whereIn('transaction_type', ['إشتراك جديد', 'إشتراك', 'اشتراك', 'تبرعات', 'إشتراك جديد + تبرع سنوي', 'التبرعات'])->sum('amount');
-        $netSafeAmount = $totalSafeAmount - $withdrawalsAmount;
-
-        return view('pages.reports.safe', compact('netSafeAmount', 'transactions', 'sumDonationsAmount', 'sumSubscriptionsAmount', 'withdrawalsAmount'));
-    }
-
-    // ! Bank
-    public function bankTransactions()
-    {
-        $transactions = PaymentTransaction::whereIn('transaction_type', ['بنك/ايداع', 'بنك/سحب'])->get();
-        $totalBank = TotalBank::first();
-        $bankAmount = $totalBank->amount;
-        $amount = $transactions->sum('amount');
-
-        return view('pages.reports.bank', compact('transactions', 'amount', 'bankAmount'));
-    }
+    
 
     // ! Associates ( إنتساب )
     public function associates()
@@ -188,25 +113,7 @@ class ReportController extends Controller
         return view('pages.reports.associates', compact('associates'));
     }
 
-    // ! Subscribtions Old Delays
-    public function search(Request $request)
-    {
-        $noOldDelays = 'لا توجد مستحقات';
-        $amount = $request->amount;
-        $optype = $request->optype;
-        $query = Subscribers::select('subscribers.name', 'subscribers.member_id')->join('dues', 'subscribers.member_id', '=', 'dues.member_id')->where('dues.transaction_type', 'إشتراك')->selectRaw('dues.total_amount, dues.amount_paid, dues.amount_remaining, dues.item');
-        if (empty($amount)) {
-            $queryResult = $query->get();
-
-            return view('pages.reports.sub_old_delays', compact('queryResult', 'noOldDelays'));
-        } else {
-            if ($amount) {
-                $delays = $query->where('dues.total_amount', $optype, $amount)->get();
-
-                return view('pages.reports.sub_old_delays', compact('delays', 'noOldDelays'));
-            }
-        }
-    }
+    
 
     // ! Incomplete Data Reports
     public function incomplete()
@@ -277,10 +184,5 @@ class ReportController extends Controller
         return redirect()->back()->with($notification);
     }
 
-    private function currentSubscriptionYear()
-    {
-        $currentYear = CostYears::max('year');
-
-        return $currentYear;
-    }
+    
 }

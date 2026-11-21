@@ -198,7 +198,8 @@
                                                                         </thead>
                                                                         <tbody>
                                                                             @php
-                                                                                $subscriptionDues = $subscriber->paymentTransactions()->where('transaction_type', 'اشتراك')->whereIn('payment_cat', ['جزئي', 'كلي'])->get();
+                                                                                // Loaded once in FinanceReports::subscriptions(), already filtered to subscription payments.
+                                                                                $subscriptionDues = $subscriber->paymentTransactions;
                                                                             @endphp
                                                                             @if ($subscriptionDues->count() > 0)
                                                                                 @foreach ($subscriptionDues as $subscription)

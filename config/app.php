@@ -227,6 +227,7 @@ return [
          * Module Service Providers...
          */
         FinanceServiceProvider::class,
+        App\Modules\Messaging\MessagingServiceProvider::class,
 
     ],
 

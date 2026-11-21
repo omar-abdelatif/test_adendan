@@ -16,11 +16,6 @@ parameters:
 			path: app/Console/Commands/NotifyUpcomingExpiry.php
 
 		-
-			message: "#^Call to an undefined method App\\\\Http\\\\Controllers\\\\Api\\\\PaymentController\\:\\:sendPayment\\(\\)\\.$#"
-			count: 1
-			path: app/Http/Controllers/Api/CheckoutController.php
-
-		-
 			message: "#^Access to an undefined property App\\\\Models\\\\Subscribers\\|App\\\\Models\\\\User\\:\\:\\$job_title\\.$#"
 			count: 1
 			path: app/Http/Controllers/Api/UserController.php
@@ -41,31 +36,6 @@ parameters:
 			path: app/Http/Controllers/BoardMembersController.php
 
 		-
-			message: "#^Access to an undefined property App\\\\Models\\\\Due\\:\\:\\$amount_paied\\.$#"
-			count: 1
-			path: app/Http/Controllers/DonationsController.php
-
-		-
-			message: "#^Access to an undefined property App\\\\Models\\\\Due\\:\\:\\$delay_amount\\.$#"
-			count: 2
-			path: app/Http/Controllers/DonationsController.php
-
-		-
-			message: "#^Call to an undefined method Illuminate\\\\Http\\\\Request\\:\\:validated\\(\\)\\.$#"
-			count: 2
-			path: app/Http/Controllers/DonationsController.php
-
-		-
-			message: "#^Function paymentTransaction invoked with 9 parameters, 12 required\\.$#"
-			count: 2
-			path: app/Http/Controllers/DonationsController.php
-
-		-
-			message: "#^Variable \\$delays might not be defined\\.$#"
-			count: 1
-			path: app/Http/Controllers/DonationsController.php
-
-		-
 			message: "#^Access to an undefined property App\\\\Models\\\\Donators\\:\\:\\$outerdonations\\.$#"
 			count: 1
 			path: app/Http/Controllers/DonatorsController.php
@@ -84,11 +54,6 @@ parameters:
 			message: "#^Access to an undefined property App\\\\Models\\\\News\\:\\:\\$is_square\\.$#"
 			count: 1
 			path: app/Http/Controllers/Frontend/News/NewsController.php
-
-		-
-			message: "#^Function paymentTransaction invoked with 9 parameters, 12 required\\.$#"
-			count: 1
-			path: app/Http/Controllers/MiscellaneousController.php
 
 		-
 			message: "#^Access to an undefined property App\\\\Models\\\\News\\|Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, App\\\\Models\\\\News\\>\\:\\:\\$thumbnails\\.$#"
@@ -116,49 +81,9 @@ parameters:
 			path: app/Http/Controllers/NewsController.php
 
 		-
-			message: "#^Access to an undefined property App\\\\Models\\\\Donators\\:\\:\\$outerdonations\\.$#"
-			count: 1
-			path: app/Http/Controllers/OuterDonationsController.php
-
-		-
-			message: "#^Call to an undefined method Illuminate\\\\Http\\\\Request\\:\\:validated\\(\\)\\.$#"
-			count: 1
-			path: app/Http/Controllers/OuterDonationsController.php
-
-		-
-			message: "#^Access to an undefined property App\\\\Models\\\\Subscribers\\:\\:\\$paymentTransactions\\.$#"
-			count: 1
-			path: app/Http/Controllers/ReportController.php
-
-		-
-			message: "#^Relation 'paymentTransactions' is not found in App\\\\Models\\\\Subscribers model\\.$#"
-			count: 2
-			path: app/Http/Controllers/ReportController.php
-
-		-
 			message: "#^Class App\\\\Imports\\\\importSmsSubscribers referenced with incorrect case\\: App\\\\Imports\\\\ImportSmsSubscribers\\.$#"
 			count: 2
 			path: app/Http/Controllers/SMSController.php
-
-		-
-			message: "#^Relation 'dues' is not found in App\\\\Models\\\\Subscribers model\\.$#"
-			count: 1
-			path: app/Http/Controllers/SubscribersController.php
-
-		-
-			message: "#^Access to an undefined property App\\\\Models\\\\Subscribers\\:\\:\\$paymentTransactions\\.$#"
-			count: 1
-			path: app/Http/Controllers/SubscriptionsController.php
-
-		-
-			message: "#^Function paymentTransaction invoked with 9 parameters, 12 required\\.$#"
-			count: 1
-			path: app/Http/Controllers/SubscriptionsController.php
-
-		-
-			message: "#^Function paymentTransaction invoked with 9 parameters, 12 required\\.$#"
-			count: 5
-			path: app/Http/Controllers/WithdrawController.php
 
 		-
 			message: "#^Call to an undefined method Illuminate\\\\Http\\\\Request\\:\\:validated\\(\\)\\.$#"
@@ -199,8 +124,3 @@ parameters:
 			message: "#^Method App\\\\Services\\\\EgyptLinxSmsService\\:\\:calculateSmsCount\\(\\) should return int but returns float\\.$#"
 			count: 1
 			path: app/Services/EgyptLinxSmsService.php
-
-		-
-			message: "#^Binary operation \"\\+\" between string\\|null and int results in an error\\.$#"
-			count: 1
-			path: app/Services/PaymobService.php

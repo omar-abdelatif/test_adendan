@@ -84,15 +84,9 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::prefix('reports')->controller(ReportController::class)->group(function () {
         Route::get('age', 'ages')->name('reports.age');
         Route::get('jobs', 'jobs')->name('reports.jobs');
-        Route::get('safe', 'safe')->name('reports.safe');
-        Route::get('search', 'search')->name('reports.search');
-        Route::get('all', 'index')->name('reports.subscriptions');
         Route::get('location', 'locations')->name('reports.location');
-        Route::get('bank', 'bankTransactions')->name('bankTransactios');
         Route::get('incomplete', 'incomplete')->name('reports.incompete');
         Route::get('associates', 'associates')->name('reports.associates');
-        Route::get('donations', 'outerdonations')->name('reports.donations');
-        Route::get('inner_donations', 'innerDonations')->name('reports.innerDonations');
         Route::get('subscribers_data', 'searchedData')->name('reports.subscribersData');
         Route::post('subscribers_data_ocr/approve/{ocr_id}', 'approveOcrData')->name('reports.search.approve');
     });
@@ -115,53 +109,13 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         Route::post('generate-passwords', 'generatePasswords')->name('generate-passwords');
     });
     Route::prefix('subscription')->controller(SubscriptionsController::class)->name('subscription.')->group(function () {
-        Route::get('history/{id}', 'index')->name('history');
-        Route::post('store', 'storeSubscription')->name('store');
-        Route::post('updating', 'updatingSubscription')->name('update');
-        Route::get('delete/{id}', 'destroyingSubscription')->name('destroy');
         Route::post('subscriptions/notify-expiry', 'runNotifyExpiry')->name('notify-expiry');
-    });
-    Route::prefix('subscription/dues')->controller(DelayController::class)->group(function () {
-        Route::post('pay', 'paySubscription')->name('subscription.pay');
-        Route::post('upload_delays', 'uploadDelays')->name('delays.costbyyear');
-    });
-    Route::prefix('dues')->controller(DueController::class)->group(function () {
-        Route::post('subscriber_dues', 'subscriberDues')->name('bulk_subscriber_dues');
     });
     Route::prefix('donators')->controller(DonatorsController::class)->group(function () {
         Route::get('donators/all', 'index')->name('donators.all');
         Route::post('donators/store', 'storeDonator')->name('donators.store');
         Route::post('donators/update', 'donatorUpdate')->name('donators.update');
         Route::get('donators/remove/{id}', 'removeDonator')->name('donators.remove');
-    });
-    Route::prefix('donations')->controller(DonationsController::class)->group(function () {
-        Route::post('donations/store', 'storeDonations')->name('donations.store');
-        Route::post('donations/update', 'updateDonation')->name('donations.update');
-        Route::get('donations/remove/{id}', 'removeDonation')->name('donation.remove');
-        Route::post('donations/pay_delay_donation', 'payDelayDonation')->name('pay.delayDonation');
-        Route::post('donations/delays/upload_bulk', 'donationsOnSubscribers')->name('delays.uploadDonations');
-    });
-    Route::prefix('outer_donations')->controller(OuterDonationsController::class)->group(function () {
-        Route::get('outer_donations/history/{id}', 'index')->name('outer_donations.history');
-        Route::post('outer_donations/history/store', 'storeOuterDonations')->name('outer_donations.store');
-        Route::post('outer_donations/history/update', 'updateOuterDonations')->name('outer_donations.update');
-        Route::get('outer_donations/history/delete/{id}', 'removeOuterDonations')->name('outer_donations.delete');
-    });
-    Route::prefix('costyears')->controller(CostYearsController::class)->group(function () {
-        Route::get('costyears/all', 'index')->name('costyears.all');
-        Route::post('costyears/store', 'storeYears')->name('costyears.store');
-        Route::post('costyears/update', 'updateYear')->name('costyears.update');
-        Route::get('costyears/delete/{id}', 'removeYear')->name('costyears.remove');
-    });
-    Route::prefix('miscellaneous')->controller(MiscellaneousController::class)->group(function () {
-        Route::get('miscellaneous/all', 'index')->name('miscellaneous.all');
-        Route::post('miscellaneous/store', 'storeMiscellaneous')->name('miscellaneous.store');
-        Route::post('miscellaneous/update', 'updateMiscellaneous')->name('miscellaneous.update');
-        Route::get('miscellaneous/delete/{id}', 'deleteMiscellaneous')->name('miscellaneous.delete');
-    });
-    Route::prefix('withdraw')->controller(WithdrawController::class)->group(function () {
-        Route::post('withdraw', 'withdraw')->name('withdraw');
-        Route::post('withdraw/bank', 'bankWithdraw')->name('bank.withdraw');
     });
     Route::prefix('activiy')->controller(ActivityController::class)->name('activity.')->group(function () {
         Route::get('activity', 'index')->name('index');
@@ -194,8 +148,5 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         Route::post('store_subscriber', 'storeSubscriber')->name('storeSubscriber');
         Route::get('balance', 'getBalance')->name('balance');
         Route::delete('delete_subscriber/{id}', 'deleteSubscriber')->name('deleteSubscriber');
-    });
-    Route::controller(PaymentTransactionController::class)->group(function () {
-        Route::post('import-payment-transactions', 'import')->name('payment_transactions.import');
     });
 });

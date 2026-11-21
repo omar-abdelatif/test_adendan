@@ -5,7 +5,7 @@ namespace Tests\Feature\Security;
 use App\Models\Due;
 use App\Models\PaymentTransaction;
 use App\Models\Subscribers;
-use App\Services\PaymobService;
+use App\Modules\Finance\Infrastructure\Paymob\PaymobGateway;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -56,7 +56,7 @@ class PaymobCallbackTest extends TestCase
 
     private function signed(array $obj, string $secret = self::SECRET): string
     {
-        return hash_hmac('sha512', app(PaymobService::class)->hmacString($obj), $secret);
+        return hash_hmac('sha512', (new PaymobGateway([]))->signedString($obj), $secret);
     }
 
     private function sendCallback(array $obj, ?string $hmac)
@@ -73,7 +73,7 @@ class PaymobCallbackTest extends TestCase
             .'true'.'false'.'555'.'123'.'false'
             .'2346'.'MasterCard'.'card'.'true';
 
-        $this->assertSame($expected, app(PaymobService::class)->hmacString($this->obj()));
+        $this->assertSame($expected, (new PaymobGateway([]))->signedString($this->obj()));
     }
 
     public function test_callback_without_hmac_is_rejected_and_records_nothing(): void
