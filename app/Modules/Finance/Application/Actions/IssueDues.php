@@ -11,12 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Charges every active member a due: the yearly subscription, or a donation
- * campaign decided by the board. Resigned members (status 2) are skipped.
+ * campaign decided by the board. Deceased members are skipped.
  */
 class IssueDues
 {
-    private const RESIGNED = 2;
-
     /** @return int how many members were charged */
     public function handle(DueType $type, string $item, Money $amount): int
     {
@@ -31,7 +29,7 @@ class IssueDues
             $now = now();
 
             Subscribers::query()
-                ->where(fn ($q) => $q->whereNull('status')->orWhere('status', '!=', self::RESIGNED))
+                ->billable()
                 ->select(['id', 'member_id']) // chunkById pages on id
                 ->chunkById(500, function ($members) use ($type, $item, $amount, $now, &$count) {
                     Due::insert($members->map(fn ($member) => [

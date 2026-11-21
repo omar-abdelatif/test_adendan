@@ -1,21 +1,21 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
+/*
+ * API routes not yet moved into a module. Module routes:
+ * - app/Modules/Finance/routes/api.php (payments, dues, checkout)
+ * - app/Modules/Members/routes/api.php (login, profile, OCR)
+ */
+
 use App\Http\Controllers\Api\NewsCommentsController;
 use App\Http\Controllers\Api\NewsController;
-use App\Http\Controllers\Api\OcrController;
 use App\Http\Controllers\Api\SMSController;
 use App\Http\Controllers\Api\TombController;
-use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\WeddingsController;
 use App\Http\Controllers\Api\WorkersController;
 use App\Http\Controllers\NotificationsController;
-use App\Http\Middleware\VerifyOcrApiKey;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
-    Route::post('/ocr-data', [OcrController::class, 'store'])->middleware([VerifyOcrApiKey::class, 'throttle:public-lookup']);
-    Route::post('/member/login', [AuthController::class, 'login'])->middleware('throttle:member-login');
     Route::prefix('/news')->controller(NewsController::class)->group(function () {
         Route::get('/all', 'allNews');
         Route::get('/limited_news', 'latestNews');
@@ -41,17 +41,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{newsId}/comments/{commentId}', 'update');
         Route::delete('/{newsId}/comments/{commentId}', 'destroy');
     });
-    Route::prefix('user')->group(function () {
-        Route::controller(UserController::class)->group(function () {
-            Route::put('/update', 'updateUser');
-            Route::get('update_is_pending/{member_id}', 'updateIsPending');
-        });
-        Route::controller(AuthController::class)->group(function () {
-            Route::post('logout', 'logout');
-            Route::get('me', 'user');
-        });
-    });
-    // Payments, dues and SMS checkout live in app/Modules/Finance/routes/api.php.
     Route::prefix('sms')->controller(SMSController::class)->group(function () {
         Route::get('sms_status', 'getSmsStatus');
         Route::get('fees', 'getSmsFees');

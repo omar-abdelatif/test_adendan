@@ -117,7 +117,7 @@ CREATE TABLE `dues` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `dues_member_id_foreign` (`member_id`),
-  CONSTRAINT `dues_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `subscribers` (`member_id`) ON DELETE CASCADE
+  CONSTRAINT `dues_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `subscribers` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `failed_jobs`;
@@ -325,15 +325,15 @@ CREATE TABLE `payment_transactions` (
   `paymob_transaction_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `paymob_status` enum('pending','paid','failed') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `transaction_cat` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `account` varchar(10) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `proof_img` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `account` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `proof_img` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `payment_transactions_paymob_transaction_id_unique` (`paymob_transaction_id`),
   KEY `payment_transactions_member_id_foreign` (`member_id`),
   KEY `payment_transactions_account_index` (`account`),
-  CONSTRAINT `payment_transactions_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `subscribers` (`member_id`) ON DELETE CASCADE
+  CONSTRAINT `payment_transactions_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `subscribers` (`member_id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `permissions`;
@@ -415,11 +415,11 @@ DROP TABLE IF EXISTS `searched_data`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `searched_data` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `ssn` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `mobile_no` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `birthdate` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ssn` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mobile_no` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `address` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `birthdate` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `member_id` int DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -467,7 +467,7 @@ CREATE TABLE `sms_subscribers` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `sms_subscribers_member_id_foreign` (`member_id`),
-  CONSTRAINT `sms_subscribers_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `subscribers` (`member_id`) ON DELETE CASCADE
+  CONSTRAINT `sms_subscribers_member_id_foreign` FOREIGN KEY (`member_id`) REFERENCES `subscribers` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `subscribers`;
@@ -554,12 +554,12 @@ DROP TABLE IF EXISTS `user_update_stagings`;
 CREATE TABLE `user_update_stagings` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `member_id` bigint unsigned NOT NULL,
-  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `mobile_no` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `ssn` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `birth_date` date NOT NULL,
-  `job_title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `address` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mobile_no` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ssn` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `birth_date` date DEFAULT NULL,
+  `job_title` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -682,3 +682,5 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (56,'2026_11_21_000
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (57,'2026_11_21_000003_align_schema_with_code',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (58,'2026_11_21_000004_allow_sms_subscribers_without_membership',2);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (60,'2026_11_21_000005_add_account_and_proof_to_payment_transactions',3);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (61,'2026_11_21_000006_protect_payment_history_when_members_change',4);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (62,'2026_11_21_000007_allow_partial_member_update_requests',5);

@@ -22,9 +22,6 @@ Route::name('site.')->group(function () {
     });
     Route::controller(SearchController::class)->group(function () {
         Route::get('search', 'index')->name('search');
-        Route::post('result', 'result')->middleware('throttle:public-lookup')->name('result');
-        Route::get('search-details/{name}', 'searechDetails')->name('searchDetails');
-        Route::post('store-member-main-data', 'storeMainMemberData')->middleware('throttle:public-lookup')->name('storeMemberMainData');
     });
     Route::controller(AssociationsCommittesController::class)->group(function () {
         Route::get('assossiation_committees', 'index')->name('assossiation');

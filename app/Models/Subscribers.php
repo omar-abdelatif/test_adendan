@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Modules\Members\Domain\MemberStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -44,6 +46,12 @@ class Subscribers extends Authenticatable
         'tomb_name',
         'fcm_token',
     ];
+
+    /** Members who are still charged dues and counted in reports (everyone but the deceased). */
+    public function scopeBillable(Builder $query): Builder
+    {
+        return $query->where(fn ($q) => $q->whereNull('status')->orWhere('status', '!=', MemberStatus::Deceased->value));
+    }
 
     public function dues(): HasMany
     {

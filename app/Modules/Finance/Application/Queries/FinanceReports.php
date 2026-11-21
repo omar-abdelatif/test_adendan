@@ -23,8 +23,6 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class FinanceReports
 {
-    private const RESIGNED = 2;
-
     /** Donation categories shown as separate totals on the inner-donations page. */
     private const DONATION_CATEGORIES = [
         'donationDeathCarSum' => 'ص.سيارة',
@@ -42,7 +40,7 @@ class FinanceReports
         $subscriptionDues = fn () => Due::where('transaction_type', DueType::Subscription->value);
 
         $subscribers = Subscribers::query()
-            ->where(fn ($q) => $q->whereNull('status')->orWhere('status', '!=', self::RESIGNED))
+            ->billable()
             ->with(['paymentTransactions' => fn ($q) => $q
                 ->whereIn('transaction_type', TransactionType::subscriptionValues())
                 ->whereIn('payment_cat', [PaymentCategory::Partial->value, PaymentCategory::Full->value]),

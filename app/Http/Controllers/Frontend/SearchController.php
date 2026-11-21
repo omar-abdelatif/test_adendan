@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\SearchedData;
-use App\Models\Subscribers;
 use App\Models\Tombs;
 use App\Models\Wedding;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class SearchController extends Controller
 {
@@ -52,73 +49,5 @@ class SearchController extends Controller
         });
 
         return $sortedMonths;
-    }
-
-    public function result(Request $request)
-    {
-        $ssn = $request->input('ssn');
-        if (empty($ssn)) {
-            return redirect()->route('site.search')->with('empty_message', 'برجاء إدخال بيانات صحيحة');
-        }
-        $member = Subscribers::where('ssn', $ssn)->first();
-        if (! $member) {
-            return redirect()->route('site.search')->with([
-                'empty_message' => 'الرقم القومي غير صحيح',
-                'empty_message2' => 'برجاء ادخال البيانات لتحديثها من خلال الرابط التالي,',
-                'link_title' => 'تحديث البيانات',
-            ]);
-        }
-        $fields = [
-            'name' => 'الاسم',
-            'mobile_no' => 'رقم المحمول',
-            'ssn' => 'الرقم القومي',
-            'address' => 'العنوان',
-            'birthdate' => 'تاريخ الميلاد',
-        ];
-        $missingFields = [];
-        foreach ($fields as $key => $label) {
-            if (is_null($member->$key) || $member->$key === 0 || $member->$key === '' || trim($member->$key) === '' || $member->$key === '0') {
-                $missingFields[$key] = $label;
-            }
-        }
-        $noDelays = 'لا توجد مستحقات';
-        // Public page: only what the search screen shows, never the member's personal data.
-        $dueColumns = ['id', 'item', 'total_amount', 'amount_paid', 'amount_remaining'];
-        $subsDues = $member->dues()->where('transaction_type', 'إشتراك')->get($dueColumns);
-        $donDues = $member->dues()->where('transaction_type', 'تبرعات')->get($dueColumns);
-
-        return response()->json(['status' => true, 'data' => [
-            'member' => $member->only(['name', 'member_id', 'status']),
-            'searched' => true,
-            'subsDues' => $subsDues,
-            'noDelays' => $noDelays,
-            'donDues' => $donDues,
-            'missingFields' => $missingFields,
-        ]]);
-    }
-
-    public function searechDetails($slug)
-    {
-        $member = Subscribers::where('slug', $slug)->first();
-
-        return view('frontend.pages.search_details.search-details', compact('member'));
-    }
-
-    public function storeMainMemberData(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'nullable',
-            'ssn' => ['nullable', 'regex:/^(2|3)[0-9]{13}$/', 'unique:searched_data,ssn'],
-            'address' => 'nullable',
-            'mobile_no' => 'nullable|numeric|digits:11|unique:searched_data,mobile_no',
-            'birthdate' => 'nullable|date',
-            'member_id' => 'nullable|unique:searched_data,member_id',
-        ]);
-        $store = SearchedData::create($validated);
-        if ($store) {
-            return response()->json(['status' => true, 'message' => 'سيقوم المختص بالتحديث']);
-        }
-
-        return response()->json(['status' => false, 'message' => 'حدث خطأ ما'], 500);
     }
 }

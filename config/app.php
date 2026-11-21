@@ -1,6 +1,8 @@
 <?php
 
 use App\Modules\Finance\FinanceServiceProvider;
+use App\Modules\Members\MembersServiceProvider;
+use App\Modules\Messaging\MessagingServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\EventServiceProvider;
 use App\Providers\RouteServiceProvider;
@@ -227,7 +229,8 @@ return [
          * Module Service Providers...
          */
         FinanceServiceProvider::class,
-        App\Modules\Messaging\MessagingServiceProvider::class,
+        MessagingServiceProvider::class,
+        MembersServiceProvider::class,
 
     ],
 

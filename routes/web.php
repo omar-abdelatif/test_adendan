@@ -3,27 +3,16 @@
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AssociationCommittesController;
 use App\Http\Controllers\BoardMembersController;
-use App\Http\Controllers\CostYearsController;
-use App\Http\Controllers\DelayController;
-use App\Http\Controllers\DonationsController;
 use App\Http\Controllers\DonatorsController;
-use App\Http\Controllers\DueController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\MiscellaneousController;
 use App\Http\Controllers\NewsController;
-use App\Http\Controllers\OuterDonationsController;
-use App\Http\Controllers\PaymentTransactionController;
 use App\Http\Controllers\PermissionsController;
-use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\SMSController;
-use App\Http\Controllers\SubscriberDataController;
-use App\Http\Controllers\SubscribersController;
 use App\Http\Controllers\SubscriptionsController;
 use App\Http\Controllers\TombsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WeddingController;
-use App\Http\Controllers\WithdrawController;
 use App\Http\Controllers\WorkerController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -42,9 +31,6 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         Route::post('update_profile', 'update')->name('user.update');
         Route::get('user/delete/{id}', 'destroy')->name('user.delete');
         Route::post('user/update', 'updateUser')->name('newuser.update');
-        Route::get('update_requests', 'updateRequests')->name('reports.updateRequests');
-        Route::post('update_request', 'updateRequest')->name('user.updateRequest');
-        Route::delete('decline_update_request/{id}', 'declineUpdateRequest')->name('user.declineUpdateRequest');
     });
     Route::prefix('news')->controller(NewsController::class)->group(function () {
         Route::get('all', 'index')->name('news.all');
@@ -81,32 +67,12 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         Route::post('associations/update_association', 'update')->name('association.update');
         Route::get('associations/delete_association/{id}', 'remove')->name('association.delete');
     });
-    Route::prefix('reports')->controller(ReportController::class)->group(function () {
-        Route::get('age', 'ages')->name('reports.age');
-        Route::get('jobs', 'jobs')->name('reports.jobs');
-        Route::get('location', 'locations')->name('reports.location');
-        Route::get('incomplete', 'incomplete')->name('reports.incompete');
-        Route::get('associates', 'associates')->name('reports.associates');
-        Route::get('subscribers_data', 'searchedData')->name('reports.subscribersData');
-        Route::post('subscribers_data_ocr/approve/{ocr_id}', 'approveOcrData')->name('reports.search.approve');
-    });
     Route::prefix('weddings')->controller(WeddingController::class)->group(function () {
         Route::get('weddings/all', 'index')->name('weddings.all');
         Route::post('wedding/store', 'weddingStore')->name('weddings.store');
         Route::post('wedding/update', 'weddingUpdate')->name('weddings.update');
         Route::get('wedding/delete/{id}', 'weddingRemove')->name('wedding.delete');
         Route::post('wedding/bulk/upload', 'uploadBulkWedding')->name('weddings.bulk');
-    });
-    Route::prefix('subscribers')->controller(SubscribersController::class)->group(function () {
-        Route::get('subscribers/all', 'index')->name('subscriber.all');
-        Route::post('update', 'update')->name('subscribe.update');
-        Route::post('store', 'storeSubs')->name('subscribe.store');
-        Route::get('delete/{id}', 'destroy')->name('subscribe.destroy');
-        Route::post('bulk_upload', 'bulkUpload')->name('subscriber.bulk');
-        Route::get('update/{id}', 'subscriberDetails')->name('subscriber.details');
-        Route::get('get-year-cost/{year}', 'getYearlyCostByAjax')->name('get.year.cost');
-        Route::get('subscribers/ajax/data/subscribers', 'getSubscribersData')->name('ajax.subscribers');
-        Route::post('generate-passwords', 'generatePasswords')->name('generate-passwords');
     });
     Route::prefix('subscription')->controller(SubscriptionsController::class)->name('subscription.')->group(function () {
         Route::post('subscriptions/notify-expiry', 'runNotifyExpiry')->name('notify-expiry');
@@ -131,12 +97,6 @@ Route::prefix('admin')->middleware('auth')->group(function () {
         Route::post('update', 'update')->name('update');
         Route::get('permissions', 'index')->name('index');
         Route::get('delete/{id}', 'destroy')->name('destroy');
-    });
-    Route::prefix('searched_data')->controller(SubscriberDataController::class)->name('search.')->group(function () {
-        Route::post('approve', 'approve')->name('approve');
-        Route::get('delete/{id}', 'delete')->name('delete');
-        Route::post('create_new', 'insert')->name('insert');
-        Route::get('delete_ocr/{id}', 'deleteOcr')->name('ocr.delete');
     });
     Route::prefix('sms')->controller(SMSController::class)->name('sms.')->group(function () {
         Route::get('sms', 'index')->name('index');
