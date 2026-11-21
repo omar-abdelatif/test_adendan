@@ -2,25 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MiscellaneousRequest;
+use App\Models\Miscellaneous;
 use App\Models\TotalSafe;
 use Illuminate\Http\Request;
-use App\Models\Miscellaneous;
-use App\Http\Requests\MiscellaneousRequest;
 
-class MiscellaneousController extends Controller {
-    function __construct(){
+class MiscellaneousController extends Controller
+{
+    public function __construct()
+    {
         $this->middleware('permission:النثريات');
     }
-    public function index() {
+
+    public function index()
+    {
         $miscellaneous = Miscellaneous::all();
+
         return view('pages.miscellaneous', compact('miscellaneous'));
     }
-    public function storeMiscellaneous(MiscellaneousRequest $request) {
+
+    public function storeMiscellaneous(MiscellaneousRequest $request)
+    {
         $validated = $request->validated();
         $totalSafe = TotalSafe::where('id', 1)->first();
         if ($request->hasFile('invoice_img')) {
             $imageFile = $request->file('invoice_img');
-            $imagename = time() . '.' . $imageFile->extension();
+            $imagename = time().'.'.$imageFile->extension();
             $destinationPath = public_path('assets/images/miscellaneous/');
             $imageFile->move($destinationPath, $imagename);
             $store = Miscellaneous::create([
@@ -37,7 +44,7 @@ class MiscellaneousController extends Controller {
             ]);
         }
         if ($store) {
-            $item = 'نثريات' . "-" . ($validated['category']) . "-" . ($request->other_category);
+            $item = 'نثريات'.'-'.($validated['category']).'-'.($request->other_category);
             paymentTransaction(null, $request['amount'], now(), 'كاش', 'كلى', 'نثريات', 'سحب', $item, $imagename ?? '');
             $sumAmount = $totalSafe->amount - $request['amount'];
             $totalSafe->update([
@@ -45,17 +52,21 @@ class MiscellaneousController extends Controller {
             ]);
             $notificationSuccess = [
                 'message' => 'تم الإضافة بنجاح',
-                'alert-type' => 'success'
+                'alert-type' => 'success',
             ];
+
             return redirect()->back()->with($notificationSuccess);
         }
+
         return redirect()->back()->with($validated);
     }
-    public function deleteMiscellaneous(int $id) {
+
+    public function deleteMiscellaneous(int $id)
+    {
         $misc = Miscellaneous::find($id);
         if ($misc) {
             if ($misc->invoice_img !== null) {
-                $oldPath = public_path('assets/images/miscellaneous/' . $misc->invoice_img);
+                $oldPath = public_path('assets/images/miscellaneous/'.$misc->invoice_img);
                 if (file_exists($oldPath)) {
                     unlink($oldPath);
                 }
@@ -64,29 +75,33 @@ class MiscellaneousController extends Controller {
             if ($delete) {
                 $notificationSuccess = [
                     'message' => 'تم الحذف بنجاح!',
-                    'alert-type' => 'success'
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             }
         }
+
         return redirect()->back()->withErrors('حدث خطأ');
     }
-    public function updateMiscellaneous(Request $request) {
+
+    public function updateMiscellaneous(Request $request)
+    {
         $request->validate(['invoice_img' => self::IMAGE_RULE]);
         $id = $request->id;
         $misc = Miscellaneous::find($id);
         if ($misc) {
-            //! Remove Old Image
+            // ! Remove Old Image
             if ($request->hasFile('invoice_img') && $misc->invoice_img !== null) {
-                $oldPath = public_path('assets/images/miscellaneous/' . $misc->invoice_img);
+                $oldPath = public_path('assets/images/miscellaneous/'.$misc->invoice_img);
                 if (file_exists($oldPath)) {
                     unlink($oldPath);
                 }
             }
-            //! Insert New Image
+            // ! Insert New Image
             if ($request->hasFile('invoice_img')) {
                 $imageFile = $request->file('invoice_img');
-                $imagename = time() . '.' . $imageFile->extension();
+                $imagename = time().'.'.$imageFile->extension();
                 $destinationPath = public_path('assets/images/miscellaneous');
                 $imageFile->move($destinationPath, $imagename);
                 $misc->invoice_img = $imagename;
@@ -94,16 +109,18 @@ class MiscellaneousController extends Controller {
             $update = $misc->update([
                 'category' => $request->category,
                 'other_category' => $request->other_category,
-                'amount' => $request->amount
+                'amount' => $request->amount,
             ]);
             if ($update) {
                 $notificationSuccess = [
                     'message' => 'تم التحديث بنجاح',
-                    'alert-type' => 'success'
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             }
         }
+
         return redirect()->back()->withErrors('حدث خطأ ما');
     }
 }

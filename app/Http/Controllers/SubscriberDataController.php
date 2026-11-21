@@ -2,30 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\OcrData;
 use App\Models\SearchedData;
-use Illuminate\Http\Request;
 use App\Models\Subscribers;
+use Illuminate\Http\Request;
 
-class SubscriberDataController extends Controller {
-    public function __construct() {
+class SubscriberDataController extends Controller
+{
+    public function __construct()
+    {
         $this->middleware('permission:التقارير');
     }
-    public function approve(Request $request){
+
+    public function approve(Request $request)
+    {
         $member = Subscribers::where('member_id', $request->member_id)->first();
         if ($member) {
             $data = [];
-            if (!empty($request->ssn)) {
+            if (! empty($request->ssn)) {
                 $data['ssn'] = $request->ssn;
             }
-            if (!empty($request->birthdate)) {
+            if (! empty($request->birthdate)) {
                 $data['birthdate'] = $request->birthdate;
             }
-            if (!empty($request->address)) {
+            if (! empty($request->address)) {
                 $data['address'] = $request->address;
             }
-            if (!empty($request->mobile_no)) {
+            if (! empty($request->mobile_no)) {
                 $data['mobile_no'] = $request->mobile_no;
             }
             if (empty($data)) {
@@ -37,25 +40,30 @@ class SubscriberDataController extends Controller {
                 if ($approvedMember) {
                     $this->delete($approvedMember->id);
                 }
+
                 return response()->json([
-                    'status'  => true,
+                    'status' => true,
                     'message' => 'تم تحديث البيانات بنجاح',
-                    'id'      => $approvedMember->id ?? null
+                    'id' => $approvedMember->id ?? null,
                 ]);
             }
         }
     }
-    public function delete($id) {
+
+    public function delete($id)
+    {
         return SearchedData::findOrFail($id)->delete();
     }
+
     public function deleteOcr($id)
     {
         $ocr = OcrData::findOrFail($id);
         $ocr->delete();
         $notificationSuccess = [
-            'message' => "تم الحذف بنجاح",
-            'alert-type' => 'success'
+            'message' => 'تم الحذف بنجاح',
+            'alert-type' => 'success',
         ];
+
         return redirect()->back()->with($notificationSuccess);
     }
 }

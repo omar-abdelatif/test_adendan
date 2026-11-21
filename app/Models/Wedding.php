@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Wedding extends Model
 {
     use HasFactory;
+
     protected $table = 'weddings';
+
     protected $fillable = [
         'day',
         'date',
@@ -16,6 +18,6 @@ class Wedding extends Model
         'pride_father_name',
         'address',
         'from_time',
-        'to_time'
+        'to_time',
     ];
 }

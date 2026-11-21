@@ -59,7 +59,7 @@ class PublicEndpointsTest extends TestCase
     public function test_member_login_is_rate_limited(): void
     {
         for ($i = 0; $i < 5; $i++) {
-            $this->postJson('/api/member/login', ['ssn' => '29001011234567', 'password' => 'guess' . $i]);
+            $this->postJson('/api/member/login', ['ssn' => '29001011234567', 'password' => 'guess'.$i]);
         }
 
         $this->postJson('/api/member/login', ['ssn' => '29001011234567', 'password' => 'guess'])->assertStatus(429);
@@ -102,9 +102,10 @@ class PublicEndpointsTest extends TestCase
     /** Inserted directly: the table's text column is `comment` while the code writes `content` (open question). */
     private function comment(?int $ownerId): int
     {
-        if (!News::find(1)) {
+        if (! News::find(1)) {
             News::forceCreate(['id' => 1, 'title' => 'خبر', 'description' => 'نص', 'category' => 'عام', 'posted_by' => 'admin']);
         }
+
         return DB::table('news_comments')->insertGetId([
             'author' => 'عضو', 'comment' => 'تعليق', 'news_id' => 1, 'subscriber_id' => $ownerId,
             'created_at' => now(), 'updated_at' => now(),

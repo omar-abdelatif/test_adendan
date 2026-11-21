@@ -28,20 +28,18 @@ return new class extends Migration
      * Nothing to undo safely: on a database that already had these columns,
      * dropping them would delete real data.
      */
-    public function down(): void
-    {
-    }
+    public function down(): void {}
 
     private function renameIfNeeded(string $table, string $from, string $to): void
     {
-        if (Schema::hasColumn($table, $from) && !Schema::hasColumn($table, $to)) {
+        if (Schema::hasColumn($table, $from) && ! Schema::hasColumn($table, $to)) {
             Schema::table($table, fn (Blueprint $t) => $t->renameColumn($from, $to));
         }
     }
 
     private function addIfMissing(string $table, string $column, Closure $definition): void
     {
-        if (!Schema::hasColumn($table, $column)) {
+        if (! Schema::hasColumn($table, $column)) {
             Schema::table($table, $definition);
         }
     }

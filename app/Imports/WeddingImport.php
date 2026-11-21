@@ -2,22 +2,19 @@
 
 namespace App\Imports;
 
-use Carbon\Carbon;
 use App\Models\Wedding;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class WeddingImport implements ToCollection, WithHeadingRow, WithBatchInserts
+class WeddingImport implements ToCollection, WithBatchInserts, WithHeadingRow
 {
-    /**
-    * @param Collection $collection
-    */
     public function collection(Collection $collection)
     {
-        foreach($collection as $row){
+        foreach ($collection as $row) {
             $weddingDate = $this->parseExcelDate($row['date']);
             Wedding::create([
                 'day' => $row['day'],
@@ -31,7 +28,8 @@ class WeddingImport implements ToCollection, WithHeadingRow, WithBatchInserts
         }
     }
 
-    private function parseExcelDate($value) {
+    private function parseExcelDate($value)
+    {
         if ($value === null || $value === '') {
             return null;
         }
@@ -45,17 +43,20 @@ class WeddingImport implements ToCollection, WithHeadingRow, WithBatchInserts
             if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $value)) {
                 return Carbon::createFromFormat('d/m/Y', $value)->format('Y-m-d');
             }
+
             return Carbon::parse($value)->format('Y-m-d');
         } catch (\Exception $e) {
             logger()->error('Date Parse Error', [
                 'value' => $value,
                 'message' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
 
-    private function parseExcelTime($value) {
+    private function parseExcelTime($value)
+    {
         if ($value === null || $value === '') {
             return null;
         }
@@ -65,17 +66,20 @@ class WeddingImport implements ToCollection, WithHeadingRow, WithBatchInserts
                     Date::excelToDateTimeObject($value)
                 )->format('g:i A');
             }
+
             return Carbon::parse($value)->format('g:i A');
         } catch (\Exception $e) {
             return null;
         }
     }
 
-    function headingRow(): int {
+    public function headingRow(): int
+    {
         return 1;
     }
 
-    function batchSize(): int {
+    public function batchSize(): int
+    {
         return 100;
     }
 }

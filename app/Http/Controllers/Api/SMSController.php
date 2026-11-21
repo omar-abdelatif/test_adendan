@@ -2,22 +2,28 @@
 
 namespace App\Http\Controllers\Api;
 
-use Illuminate\Http\Request;
-use App\Services\SMSService;
 use App\Http\Controllers\Controller;
 use App\Services\EgyptLinxSmsService;
+use App\Services\SMSService;
+use Illuminate\Http\Request;
 
-class SMSController extends Controller {
+class SMSController extends Controller
+{
     public function __construct(protected EgyptLinxSmsService $egyptLinkService, protected SMSService $smsService) {}
-    public function getUserSmsPaymentHistory(Request $request){
+
+    public function getUserSmsPaymentHistory(Request $request)
+    {
         $user = $request->user();
-        $history = $user->paymentTransactions()->where('item','رسائل')->get();
+        $history = $user->paymentTransactions()->where('item', 'رسائل')->get();
+
         return response()->json([
             'success' => true,
             'data' => $history,
         ]);
     }
-    public function paySmsSubscription(Request $request) {
+
+    public function paySmsSubscription(Request $request)
+    {
         $user = $request->user();
         $userMemberId = $user->member_id;
         $mobileNumber = $user->mobile_no;
@@ -37,6 +43,7 @@ class SMSController extends Controller {
                 'transaction_cat' => 'ايداع',
                 'paymob_status' => 'pending',
             ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'تم دفع اشتراك الرسائل بنجاح',
@@ -44,11 +51,13 @@ class SMSController extends Controller {
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
-                'message' => $th->getMessage()
+                'message' => $th->getMessage(),
             ], 500);
         }
     }
-    public function getSmsStatus(Request $request) {
+
+    public function getSmsStatus(Request $request)
+    {
         $user = $request->user();
         $memberId = $user->member_id;
         $smsStatus = $this->smsService->getSmsStatus($memberId);
@@ -58,12 +67,15 @@ class SMSController extends Controller {
                 'message' => 'لا يوجد اشتراك لهذا العضو',
             ], 404);
         }
+
         return response()->json([
             'success' => true,
             'sms_status' => $smsStatus,
         ]);
     }
-    public function renewSms(Request $request) {
+
+    public function renewSms(Request $request)
+    {
         $user = $request->user();
         $userMemberId = $user->member_id;
         $amount = $this->egyptLinkService->smsFees();
@@ -81,14 +93,18 @@ class SMSController extends Controller {
             'transaction_cat' => 'ايداع',
             'paymob_status' => 'pending',
         ]);
+
         return response()->json([
             'success' => true,
             'message' => 'تم تجديد اشتراك الرسائل بنجاح',
             'transaction' => $transaction,
         ]);
     }
-    public function getSmsFees() {
+
+    public function getSmsFees()
+    {
         $fees = $this->egyptLinkService->smsFees();
+
         return response()->json([
             'success' => true,
             'fees' => $fees,

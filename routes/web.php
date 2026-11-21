@@ -1,32 +1,32 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\AssociationCommittesController;
+use App\Http\Controllers\BoardMembersController;
+use App\Http\Controllers\CostYearsController;
+use App\Http\Controllers\DelayController;
+use App\Http\Controllers\DonationsController;
+use App\Http\Controllers\DonatorsController;
+use App\Http\Controllers\DueController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MiscellaneousController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\OuterDonationsController;
+use App\Http\Controllers\PaymentTransactionController;
+use App\Http\Controllers\PermissionsController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\RolesController;
+use App\Http\Controllers\SMSController;
+use App\Http\Controllers\SubscriberDataController;
+use App\Http\Controllers\SubscribersController;
+use App\Http\Controllers\SubscriptionsController;
+use App\Http\Controllers\TombsController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WeddingController;
+use App\Http\Controllers\WithdrawController;
+use App\Http\Controllers\WorkerController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DueController;
-use App\Http\Controllers\SMSController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\NewsController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\DelayController;
-use App\Http\Controllers\RolesController;
-use App\Http\Controllers\TombsController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\WorkerController;
-use App\Http\Controllers\WeddingController;
-use App\Http\Controllers\ActivityController;
-use App\Http\Controllers\DonatorsController;
-use App\Http\Controllers\WithdrawController;
-use App\Http\Controllers\CostYearsController;
-use App\Http\Controllers\DonationsController;
-use App\Http\Controllers\PermissionsController;
-use App\Http\Controllers\SubscribersController;
-use App\Http\Controllers\BoardMembersController;
-use App\Http\Controllers\MiscellaneousController;
-use App\Http\Controllers\SubscriptionsController;
-use App\Http\Controllers\OuterDonationsController;
-use App\Http\Controllers\SubscriberDataController;
-use App\Http\Controllers\PaymentTransactionController;
-use App\Http\Controllers\AssociationCommittesController;
 
 Auth::routes(['register' => false]);
 

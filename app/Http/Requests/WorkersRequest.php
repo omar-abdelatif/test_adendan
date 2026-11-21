@@ -26,7 +26,7 @@ class WorkersRequest extends FormRequest
             'phone_number' => 'required',
             'craft' => 'required|string',
             'other_craft' => 'string',
-            'location' => 'string'
+            'location' => 'string',
         ];
     }
 }

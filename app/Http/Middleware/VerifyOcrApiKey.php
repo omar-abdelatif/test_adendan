@@ -18,7 +18,7 @@ class VerifyOcrApiKey
         $expected = (string) config('services.ocr.api_key');
         $given = (string) $request->header('X-Api-Key');
 
-        if ($expected === '' || !hash_equals($expected, $given)) {
+        if ($expected === '' || ! hash_equals($expected, $given)) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 

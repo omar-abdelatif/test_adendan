@@ -4,7 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\GeneratorCommand;
 
-class MakeService extends GeneratorCommand {
+class MakeService extends GeneratorCommand
+{
     /**
      * The name and signature of the console command.
      *
@@ -27,14 +28,16 @@ class MakeService extends GeneratorCommand {
     /**
      * Get the stub file for the generator.
      */
-    protected function getStub(): string {
+    protected function getStub(): string
+    {
         return resource_path('stubs/service.stub');
     }
 
     /**
      * Get the default namespace for the class.
      */
-    protected function getDefaultNamespace($rootNamespace): string {
-        return $rootNamespace . '\Services';
+    protected function getDefaultNamespace($rootNamespace): string
+    {
+        return $rootNamespace.'\Services';
     }
 }

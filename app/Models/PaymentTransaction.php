@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class PaymentTransaction extends Model {
+class PaymentTransaction extends Model
+{
     protected $fillable = [
         'item',
         'amount',
@@ -21,7 +22,9 @@ class PaymentTransaction extends Model {
         'paymob_status',
 
     ];
-    public function subscriber() {
+
+    public function subscriber()
+    {
         return $this->belongsTo(Subscribers::class, 'member_id', 'member_id');
     }
 }

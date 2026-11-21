@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class CostYears extends Model
 {
     use HasFactory;
-    protected  $table = 'cost_years';
+
+    protected $table = 'cost_years';
+
     protected $fillable = [
         'cost',
-        'year'
+        'year',
     ];
 }

@@ -25,7 +25,7 @@ class MiscellaneousRequest extends FormRequest
             'amount' => ['required'],
             'invoice_img' => ['image', 'mimes:png,jpg,webp,jpeg', 'max:2048'],
             'category' => ['required'],
-            'other_category' => ['nullable']
+            'other_category' => ['nullable'],
         ];
     }
 }

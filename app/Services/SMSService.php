@@ -4,24 +4,31 @@ namespace App\Services;
 
 use App\Models\SMSSubscribers;
 
-class SMSService {
-    public function updateSmsFees($fees, int $amount) {
+class SMSService
+{
+    public function updateSmsFees($fees, int $amount)
+    {
         return $fees->update([
             'amount' => $amount,
         ]);
     }
-    public function getSmsStatus(int $memberId) {
+
+    public function getSmsStatus(int $memberId)
+    {
         $subscriber = SMSSubscribers::where('member_id', $memberId)->first();
-        if (!$subscriber) {
+        if (! $subscriber) {
             return false;
         }
+
         return [
             'status' => $subscriber->active_sms,
             'subscription_date' => $subscriber->subscription_start_date,
             'expiry_date' => $subscriber->subscription_expiry_date,
         ];
     }
-    public function deleteSubscriber(int $id) {
+
+    public function deleteSubscriber(int $id)
+    {
         return SMSSubscribers::findOrFail($id)->delete();
     }
 }

@@ -2,15 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Subscribers extends Authenticatable {
-    use LogsActivity, HasApiTokens;
+class Subscribers extends Authenticatable
+{
+    use HasApiTokens, LogsActivity;
+
     protected $table = 'subscribers';
+
     protected $hidden = ['password'];
+
     protected $fillable = [
         'member_id',
         'name',
@@ -34,41 +38,60 @@ class Subscribers extends Authenticatable {
         'status',
         'img',
         'tomb_name',
-        'fcm_token'
+        'fcm_token',
     ];
-    public function dues(){
+
+    public function dues()
+    {
         return $this->hasMany(Due::class, 'member_id', 'member_id');
     }
-    public function paymentTransactions(){
+
+    public function paymentTransactions()
+    {
         return $this->hasMany(PaymentTransaction::class, 'member_id', 'member_id');
     }
-    public function donations(){
+
+    public function donations()
+    {
         return $this->hasMany(Donations::class);
     }
-    public function tomb(){
+
+    public function tomb()
+    {
         return $this->belongsTo(Tombs::class, 'tomb_name', 'title');
     }
-    public function smssubscribers(){
+
+    public function smssubscribers()
+    {
         return $this->hasOne(SMSSubscribers::class, 'member_id', 'member_id');
     }
-    protected function getDynamicLogName(): string{
+
+    protected function getDynamicLogName(): string
+    {
         return 'Subscribers';
     }
-    public function getActivitylogOptions(): LogOptions {
+
+    public function getActivitylogOptions(): LogOptions
+    {
         return LogOptions::defaults()->logAll()->useLogName($this->getDynamicLogName())->logOnlyDirty()->setDescriptionForEvent(function (string $eventName) {
             return $this->getTranslatedDescription($eventName);
         });
     }
-    protected function getTranslatedDescription(string $eventName): string {
+
+    protected function getTranslatedDescription(string $eventName): string
+    {
         $descriptions = [
             'created' => 'تم إضافة العضو ":name".',
             'updated' => 'تم تحديث العضو ":name".',
             'deleted' => 'تم حذف العضو ":name".',
         ];
         $arDescription = $descriptions[$eventName] ?? 'حدث غير معروف للعضو';
+
         return strtr($arDescription, [':name' => $this->name ?? 'اسم غير معروف']);
     }
-    public function getAuthIdentifierName() {
+
+    public function getAuthIdentifierName()
+    {
         return 'ssn';
     }
 }

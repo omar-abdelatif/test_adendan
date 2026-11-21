@@ -5,14 +5,13 @@ namespace App\Imports;
 use App\Models\SMSSubscribers;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class importSmsSybscribers implements ToCollection, WithHeadingRow, WithBatchInserts {
-    /**
-    * @param Collection $collection
-    */
-    public function collection(Collection $collection) {
+class importSmsSybscribers implements ToCollection, WithBatchInserts, WithHeadingRow
+{
+    public function collection(Collection $collection)
+    {
         foreach ($collection as $row) {
             SMSSubscribers::create([
                 'member_id' => $row['member_id'],
@@ -23,10 +22,14 @@ class importSmsSybscribers implements ToCollection, WithHeadingRow, WithBatchIns
             ]);
         }
     }
-        function headingRow(): int {
+
+    public function headingRow(): int
+    {
         return 1;
     }
-    function batchSize(): int {
+
+    public function batchSize(): int
+    {
         return 100;
     }
 }

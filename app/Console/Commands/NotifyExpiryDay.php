@@ -2,22 +2,26 @@
 
 namespace App\Console\Commands;
 
-use Carbon\Carbon;
 use App\Models\Reminders;
 use App\Models\SMSSubscribers;
-use Illuminate\Console\Command;
 use App\Services\EgyptLinxSmsService;
+use Carbon\Carbon;
+use Illuminate\Console\Command;
 
-class NotifyExpiryDay extends Command {
+class NotifyExpiryDay extends Command
+{
     protected $signature = 'sms:notify-expiry-today';
+
     protected $description = 'إرسال تذكير للمشتركين الذين ينتهي اشتراكهم اليوم';
 
-    public function handle(EgyptLinxSmsService $egyptLinxSmsService) {
+    public function handle(EgyptLinxSmsService $egyptLinxSmsService)
+    {
         $gracePeriod = 15;
         $expiredDate = Carbon::today()->subDays($gracePeriod);
         $subscribers = SMSSubscribers::where('active_sms', 1)->whereDate('subscription_expiry_date', $expiredDate)->get();
         if ($subscribers->isEmpty()) {
             $this->info('لا توجد اشتراكات تنتهي اليوم.');
+
             return Command::SUCCESS;
         }
         SMSSubscribers::whereIn('id', $subscribers->pluck('id'))->update(['active_sms' => false]);
@@ -26,18 +30,19 @@ class NotifyExpiryDay extends Command {
         try {
             $egyptLinxSmsService->sendArabic($phones, $message);
         } catch (\Exception $e) {
-            $this->error('فشل الإرسال: ' . $e->getMessage());
+            $this->error('فشل الإرسال: '.$e->getMessage());
         }
-        $reminders = $subscribers->map(fn($subscriber) => [
+        $reminders = $subscribers->map(fn ($subscriber) => [
             'subscriber_id' => $subscriber->id,
-            'mobile_no'     => $subscriber->mobile_no,
-            'type'          => 'expiry_day',
-            'message'       => $message,
-            'sent_at'       => now(),
-            'created_at'    => now(),
-            'updated_at'    => now(),
+            'mobile_no' => $subscriber->mobile_no,
+            'type' => 'expiry_day',
+            'message' => $message,
+            'sent_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ])->toArray();
         Reminders::insert($reminders);
+
         return Command::SUCCESS;
     }
 }

@@ -21,7 +21,8 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot() {
+    public function boot()
+    {
         require_once app_path('Helpers/Helpers.php');
     }
 }

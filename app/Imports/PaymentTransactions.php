@@ -3,17 +3,19 @@
 namespace App\Imports;
 
 use Illuminate\Support\Collection;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class PaymentTransactions implements ToCollection, WithHeadingRow, WithBatchInserts, WithCalculatedFormulas {
-    public function collection(Collection $collection) {
+class PaymentTransactions implements ToCollection, WithBatchInserts, WithCalculatedFormulas, WithHeadingRow
+{
+    public function collection(Collection $collection)
+    {
         foreach ($collection as $row) {
             $paymentDate = null;
-            if (!empty($row['payment_date'])) {
+            if (! empty($row['payment_date'])) {
                 try {
                     if (is_numeric($row['payment_date'])) {
                         $paymentDate = Date::excelToDateTimeObject($row['payment_date'])->format('Y-m-d');
@@ -29,15 +31,20 @@ class PaymentTransactions implements ToCollection, WithHeadingRow, WithBatchInse
             if (is_numeric($item)) {
                 try {
                     $item = Date::excelToDateTimeObject($item)->format('Y-m-d');
-                } catch (\Exception $e) {}
+                } catch (\Exception $e) {
+                }
             }
             paymentTransaction($row['member_id'], (int) $row['amount'] ?? 0, $paymentDate ?? null, trim($row['payment_method']), trim($row['payment_cat']), trim($row['transaction_type']), trim($row['transaction_cat']), trim($item), $row['inv_no'], null, null, 'المقر');
         }
     }
-    function headingRow(): int {
+
+    public function headingRow(): int
+    {
         return 1;
     }
-    function batchSize(): int {
+
+    public function batchSize(): int
+    {
         return 100;
     }
 }

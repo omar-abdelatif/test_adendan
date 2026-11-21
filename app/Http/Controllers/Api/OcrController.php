@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\OcrData;
 use Illuminate\Http\Request;
 
-class OcrController extends Controller {
-    public function store(Request $request) {
+class OcrController extends Controller
+{
+    public function store(Request $request)
+    {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'required|string|max:255',
@@ -16,6 +18,7 @@ class OcrController extends Controller {
             'mobile' => 'required|string|max:20',
         ]);
         OcrData::create($validatedData);
+
         return response()->json([
             'message' => 'OCR data stored successfully',
         ], 201);

@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class OcrData extends Model {
+class OcrData extends Model
+{
     protected $fillable = [
         'name',
         'address',

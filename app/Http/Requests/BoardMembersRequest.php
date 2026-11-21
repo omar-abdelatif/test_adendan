@@ -25,7 +25,7 @@ class BoardMembersRequest extends FormRequest
             'name' => 'required|string',
             'position' => 'required|string',
             'img' => 'image|mimes:png,jpg,jpeg,webp|max:2048',
-            'phone_number' => 'required'
+            'phone_number' => 'required',
         ];
     }
 }

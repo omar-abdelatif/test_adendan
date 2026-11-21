@@ -54,6 +54,7 @@ class AdminSeeder extends Seeder
 
         if (! $email || ! $password) {
             $this->command->error('Set ADMIN_EMAIL and ADMIN_PASSWORD in .env first.');
+
             return;
         }
 

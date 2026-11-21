@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Donations extends Model
 {
     use HasFactory, LogsActivity;
+
     protected $table = 'donations';
+
     protected $fillable = [
         'member_id',
         'invoice_no',
@@ -22,18 +24,26 @@ class Donations extends Model
         'payment_date',
         'subscribers_id',
     ];
-    public function subscribers() {
-        return  $this->belongsTo(Subscribers::class);
+
+    public function subscribers()
+    {
+        return $this->belongsTo(Subscribers::class);
     }
-    protected function getDynamicLogName(): string {
+
+    protected function getDynamicLogName(): string
+    {
         return 'Donations';
     }
-    public function getActivitylogOptions(): LogOptions {
+
+    public function getActivitylogOptions(): LogOptions
+    {
         return LogOptions::defaults()->logAll()->useLogName($this->getDynamicLogName())->logOnlyDirty()->setDescriptionForEvent(function (string $eventName) {
             return $this->getTranslatedDescription($eventName);
         });
     }
-    protected function getTranslatedDescription(string $eventName): string {
+
+    protected function getTranslatedDescription(string $eventName): string
+    {
         $subPayment = [
             'created' => 'تم دفع تبرع جديد من العضو ":subscriber_name".',
             'created_partial' => 'تم دفع جزء من مبلغ التبرع للعضو ":subscriber_name".',
@@ -58,6 +68,7 @@ class Donations extends Model
 
         $payment = $subPayment[$eventName] ?? 'حدث غير معروف.';
         $subscriberName = $this->subscribers->name ?? 'غير معروف';
+
         return strtr($payment, [
             ':subscriber_name' => $subscriberName,
         ]);

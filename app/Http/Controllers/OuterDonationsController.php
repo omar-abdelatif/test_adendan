@@ -2,25 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\OuterDonationsRequest;
 use App\Models\Donators;
+use App\Models\OuterDonations;
 use App\Models\TotalSafe;
 use Illuminate\Http\Request;
-use App\Models\OuterDonations;
-use App\Http\Requests\OuterDonationsRequest;
 
 class OuterDonationsController extends Controller
 {
-    function __construct(){
+    public function __construct()
+    {
         $this->middleware('permission:التبرعات الخارجية');
     }
+
     public function index(int $id)
     {
         $donators = Donators::find($id);
         if ($donators) {
             $outerdonations = $donators->outerdonations;
+
             return view('pages.donations.outer_donations_history', compact('donators', 'outerdonations'));
         }
     }
+
     public function storeOuterDonations(OuterDonationsRequest $request)
     {
         $validated = $request->validated();
@@ -44,13 +48,16 @@ class OuterDonationsController extends Controller
                 ]);
                 $notificationSuccess = [
                     'message' => 'تم الإضافة بنجاح',
-                    'alert-type' => 'success'
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             }
         }
+
         return redirect()->back()->withErrors($validated);
     }
+
     public function removeOuterDonations(int $id)
     {
         $outer = OuterDonations::find($id);
@@ -59,13 +66,16 @@ class OuterDonationsController extends Controller
             if ($delete) {
                 $notificationSuccess = [
                     'message' => 'تم الحذف بنجاح',
-                    'alert-type' => 'success'
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             }
         }
+
         return redirect()->back()->withErrors('حدث خطأ أثناء الحذف');
     }
+
     public function updateOuterDonations(Request $request)
     {
         $validated = $request->validated();
@@ -76,11 +86,13 @@ class OuterDonationsController extends Controller
             if ($update) {
                 $notificationSuccess = [
                     'message' => 'تم التعديل بنجاح',
-                    'alert-type' => 'success'
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             }
         }
+
         return redirect()->back()->withErrors($validated);
     }
 }

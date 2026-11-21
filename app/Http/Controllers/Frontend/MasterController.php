@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Models\News;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\News;
 
 class MasterController extends Controller
 {
@@ -22,6 +21,7 @@ class MasterController extends Controller
         $weddingnewscount = $news->where('category', 'أفراح')->count();
         $sportnews = $news->where('category', 'أخبار رياضية')->take(8);
         $sportnewscount = $news->where('category', 'أخبار رياضية')->count();
+
         return view('frontend.master', compact([
             'latest',
             'generalnews',
@@ -36,7 +36,9 @@ class MasterController extends Controller
             'sportnewscount',
         ]));
     }
-    public function errorPage(){
+
+    public function errorPage()
+    {
         return view('frontend.pages.error.error');
     }
 }

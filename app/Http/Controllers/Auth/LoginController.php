@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -40,12 +40,14 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
     }
+
     protected function authenticated(Request $request)
     {
         $notification = [
-            'message' => "تم تسجيل الدخول",
+            'message' => 'تم تسجيل الدخول',
             'alert-type' => 'success',
         ];
+
         return redirect()->route('home')->with($notification);
     }
 
@@ -57,6 +59,7 @@ class LoginController extends Controller
         ];
         $user = Auth::user();
         $arDescription = $descriptions[$eventName] ?? 'حدث تسجيل دخول غير معروف.';
+
         return strtr($arDescription, [':name' => $user->name]);
     }
 
@@ -72,9 +75,11 @@ class LoginController extends Controller
                 ])->event('loggedin')->log($this->getTranslatedLoginDescription('login'));
             }
             $request->session()->regenerate();
+
             return $this->authenticated($request, $user) ?: redirect()->intended($this->redirectPath());
         }
         $this->incrementLoginAttempts($request);
+
         return $this->sendFailedLoginResponse($request);
     }
 
@@ -93,6 +98,7 @@ class LoginController extends Controller
         if ($response = $this->loggedOut($request)) {
             return $response;
         }
+
         return $request->wantsJson() ? new JsonResponse([], 204) : redirect('/');
     }
 }

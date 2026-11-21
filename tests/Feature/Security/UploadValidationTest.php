@@ -26,8 +26,9 @@ class UploadValidationTest extends TestCase
 
     private function staff(string $permission): User
     {
-        $user = User::create(['name' => 'Staff', 'email' => uniqid() . '@example.test', 'password' => bcrypt('secret')]);
+        $user = User::create(['name' => 'Staff', 'email' => uniqid().'@example.test', 'password' => bcrypt('secret')]);
         $user->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+
         return $user;
     }
 
@@ -70,7 +71,7 @@ class UploadValidationTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $saved = NewsThumbnail::sole()->thumbnail;
-        $this->createdFiles[] = public_path('assets/images/news-imgs/news-thumbnails/' . $saved);
+        $this->createdFiles[] = public_path('assets/images/news-imgs/news-thumbnails/'.$saved);
         $this->assertStringEndsWith('.png', $saved);
     }
 

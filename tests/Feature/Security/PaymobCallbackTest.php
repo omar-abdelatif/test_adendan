@@ -61,16 +61,17 @@ class PaymobCallbackTest extends TestCase
 
     private function sendCallback(array $obj, ?string $hmac)
     {
-        $url = '/api/paymob/callback' . ($hmac ? '?hmac=' . $hmac : '');
+        $url = '/api/paymob/callback'.($hmac ? '?hmac='.$hmac : '');
+
         return $this->postJson($url, ['type' => 'TRANSACTION', 'obj' => $obj]);
     }
 
     public function test_hmac_string_follows_paymob_field_order_with_boolean_words(): void
     {
-        $expected = '10000' . '2026-11-21T10:15:00.000000' . 'EGP' . 'false' . 'false'
-            . '987654' . '4991596' . 'true' . 'false' . 'false' . 'false'
-            . 'true' . 'false' . '555' . '123' . 'false'
-            . '2346' . 'MasterCard' . 'card' . 'true';
+        $expected = '10000'.'2026-11-21T10:15:00.000000'.'EGP'.'false'.'false'
+            .'987654'.'4991596'.'true'.'false'.'false'.'false'
+            .'true'.'false'.'555'.'123'.'false'
+            .'2346'.'MasterCard'.'card'.'true';
 
         $this->assertSame($expected, app(PaymobService::class)->hmacString($this->obj()));
     }

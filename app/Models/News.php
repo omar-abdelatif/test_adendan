@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class News extends Model
 {
     use HasFactory;
+
     protected $table = 'news';
+
     protected $fillable = [
         'title',
         'description',
@@ -17,16 +19,21 @@ class News extends Model
         'shortlink',
         'thumbnail',
         'slug',
-        'posted_by'
+        'posted_by',
     ];
+
     public function thumbnails()
     {
         return $this->hasMany(NewsThumbnail::class);
     }
-    public function videos(){
+
+    public function videos()
+    {
         return $this->hasMany(NewsVideos::class);
     }
-    public function comments() {
+
+    public function comments()
+    {
         return $this->hasMany(NewsComments::class, 'news_id');
     }
 }

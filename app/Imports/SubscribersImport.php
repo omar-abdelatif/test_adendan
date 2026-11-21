@@ -3,17 +3,19 @@
 namespace App\Imports;
 
 use App\Models\Subscribers;
-use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class SubscribersImport implements ToCollection, WithHeadingRow, WithBatchInserts {
-    public function collection(Collection $collection) {
+class SubscribersImport implements ToCollection, WithBatchInserts, WithHeadingRow
+{
+    public function collection(Collection $collection)
+    {
         foreach ($collection as $row) {
             $birthdate = null;
-            if (!empty($row['birthdate'])) {
+            if (! empty($row['birthdate'])) {
                 if (is_numeric($row['birthdate'])) {
                     $birthdate = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['birthdate'])->format('Y-m-d');
                 } else {
@@ -43,10 +45,14 @@ class SubscribersImport implements ToCollection, WithHeadingRow, WithBatchInsert
             );
         }
     }
-    function headingRow(): int {
+
+    public function headingRow(): int
+    {
         return 1;
     }
-    function batchSize(): int {
+
+    public function batchSize(): int
+    {
         return 100;
     }
 }

@@ -1,14 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Frontend\MasterController;
-use App\Http\Controllers\Frontend\SearchController;
-use App\Http\Controllers\Frontend\WorkerController;
-use App\Http\Controllers\Frontend\News\NewsController;
+use App\Http\Controllers\Frontend\AssociationsCommittesController;
 use App\Http\Controllers\Frontend\BoardMembersController;
 use App\Http\Controllers\Frontend\FrontDonationController;
-use App\Http\Controllers\Frontend\AssociationsCommittesController;
+use App\Http\Controllers\Frontend\MasterController;
+use App\Http\Controllers\Frontend\News\NewsController;
+use App\Http\Controllers\Frontend\SearchController;
+use App\Http\Controllers\Frontend\WorkerController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Auth::routes(['register' => false]);
 

@@ -5,12 +5,14 @@ namespace App\Imports;
 use App\Models\Due;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class ImportSubscribersDues implements ToCollection, WithHeadingRow, WithBatchInserts, WithCalculatedFormulas {
-    public function collection(Collection $collection) {
+class ImportSubscribersDues implements ToCollection, WithBatchInserts, WithCalculatedFormulas, WithHeadingRow
+{
+    public function collection(Collection $collection)
+    {
         foreach ($collection as $row) {
             Due::create([
                 'member_id' => $row['member_id'],
@@ -22,11 +24,14 @@ class ImportSubscribersDues implements ToCollection, WithHeadingRow, WithBatchIn
             ]);
         }
     }
-    function headingRow(): int {
+
+    public function headingRow(): int
+    {
         return 1;
     }
 
-    function batchSize(): int {
+    public function batchSize(): int
+    {
         return 100;
     }
 }

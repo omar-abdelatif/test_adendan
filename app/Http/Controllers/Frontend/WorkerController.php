@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Worker;
-use Illuminate\Http\Request;
 
 class WorkerController extends Controller
 {
@@ -22,6 +21,7 @@ class WorkerController extends Controller
         $techCount = $tech->count();
         $other = Worker::latest()->where('craft', 'أخرى')->paginate(12);
         $otherCount = $other->count();
+
         return view('frontend.pages.workers', compact([
             'carpenter',
             'carpenterCount',

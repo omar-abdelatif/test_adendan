@@ -25,7 +25,7 @@ return new class extends Migration
         if ($duplicates->isNotEmpty()) {
             throw new RuntimeException(
                 'Duplicate paymob_transaction_id values must be reviewed before this migration can run: '
-                . $duplicates->map(fn ($copies, $id) => "{$id} ({$copies}x)")->implode(', ')
+                .$duplicates->map(fn ($copies, $id) => "{$id} ({$copies}x)")->implode(', ')
             );
         }
 

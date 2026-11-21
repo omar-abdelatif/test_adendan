@@ -40,22 +40,22 @@ return [
     'egyptlinx' => [
         'provider' => env('EGYPTLINX_SMS_PROVIDER'),
         'password' => env('EGYPTLINX_SMS_PASSWORD'),
-        'sender'   => env('EGYPTLINX_SMS_SENDER'),
+        'sender' => env('EGYPTLINX_SMS_SENDER'),
     ],
 
     'paymob' => [
-        'api_key'               => env('PAYMOB_API_KEY'),
-        'intention_url'         => env('PAYMOB_INTENTION_URL', 'https://accept.paymob.com/v1/intention/'),
-        'card_integration_id'   => env('PAYMOB_CARD_INTEGRATION_ID', '4991596'),
+        'api_key' => env('PAYMOB_API_KEY'),
+        'intention_url' => env('PAYMOB_INTENTION_URL', 'https://accept.paymob.com/v1/intention/'),
+        'card_integration_id' => env('PAYMOB_CARD_INTEGRATION_ID', '4991596'),
         'wallet_integration_id' => env('PAYMOB_WALLET_INTEGRATION_ID', '4991600'),
-        'hmac_secret'           => env('PAYMOB_HMAC_SECRET'),
-        'iframe_id'             => env('PAYMOB_IFRAME_ID'),
-        'secret'                => env('PAYMOB_SK'),
-        'public'                => env('PAYMOB_PK'),
+        'hmac_secret' => env('PAYMOB_HMAC_SECRET'),
+        'iframe_id' => env('PAYMOB_IFRAME_ID'),
+        'secret' => env('PAYMOB_SK'),
+        'public' => env('PAYMOB_PK'),
     ],
     'firebase' => [
         'credentials' => env('FIREBASE_CREDENTIALS'),
-        'project_id'  => env('FIREBASE_PROJECT_ID'),
+        'project_id' => env('FIREBASE_PROJECT_ID'),
     ],
     'ocr' => [
         'api_key' => env('OCR_API_KEY'),

@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class SearchedData extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
         'mobile_no',
         'ssn',
         'address',
         'birthdate',
-        'member_id'
+        'member_id',
     ];
 }

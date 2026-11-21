@@ -18,6 +18,7 @@ class RouteServiceProvider extends ServiceProvider
      * @var string
      */
     public const HOME = '/admin/dashboard/main';
+
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
      *
@@ -53,8 +54,8 @@ class RouteServiceProvider extends ServiceProvider
         // Mobile app login: slows down password guessing per national ID and per IP.
         RateLimiter::for('member-login', function (Request $request) {
             return [
-                Limit::perMinute(5)->by('ssn:' . $request->input('ssn')),
-                Limit::perMinute(20)->by('ip:' . $request->ip()),
+                Limit::perMinute(5)->by('ssn:'.$request->input('ssn')),
+                Limit::perMinute(20)->by('ip:'.$request->ip()),
             ];
         });
     }

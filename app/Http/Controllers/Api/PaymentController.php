@@ -11,16 +11,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class PaymentController extends Controller {
+class PaymentController extends Controller
+{
     public function __construct(private PaymobService $paymobService, protected EgyptLinxSmsService $egyptLinkService) {}
-    public function callback(Request $request) {
+
+    public function callback(Request $request)
+    {
         $type = $request->input('type');
         $obj = $request->input('obj');
-        if ($type !== 'TRANSACTION' || !is_array($obj)) {
+        if ($type !== 'TRANSACTION' || ! is_array($obj)) {
             Log::warning('Paymob callback with invalid structure', ['type' => $type]);
+
             return response()->json(['message' => 'بيانات غير صحيحة'], 400);
         }
-        if (!$this->paymobService->verifyHmac($obj, $request->query('hmac'))) {
+        if (! $this->paymobService->verifyHmac($obj, $request->query('hmac'))) {
             return response()->json(['message' => 'بيانات غير صحيحة (فشل التشفير)'], 403);
         }
         $merchantOrderId = $obj['order']['merchant_order_id'] ?? null;
@@ -28,12 +32,14 @@ class PaymentController extends Controller {
         $transactionId = $obj['id'] ?? null;
         $amountCents = $obj['amount_cents'] ?? 0;
         $success = $obj['success'] ?? false;
-        if (!$merchantOrderId || !$transactionId) {
+        if (! $merchantOrderId || ! $transactionId) {
             Log::warning('Paymob callback missing ids', ['transaction_id' => $transactionId]);
+
             return response()->json(['message' => 'بيانات ناقصة'], 400);
         }
-        if (!$success) {
+        if (! $success) {
             Log::info('Paymob payment not successful', ['transaction_id' => $transactionId]);
+
             return response()->json(['message' => 'فشل الدفع'], 400);
         }
         // Paymob retries callbacks: a transaction we already recorded must not be applied twice.
@@ -44,6 +50,7 @@ class PaymentController extends Controller {
         $userData = explode('-', $merchantOrderId);
         if (count($userData) < 5) {
             Log::warning('Invalid merchant_order_id format', ['transaction_id' => $transactionId]);
+
             return response()->json(['message' => 'بيانات غير صحيحة'], 400);
         }
         $memberId = (int) $userData[0];
@@ -65,9 +72,12 @@ class PaymentController extends Controller {
             // A parallel retry of the same callback won the race; the payment is already recorded.
             return response()->json(['message' => 'تم تسجيل العملية من قبل']);
         }
+
         return response()->json(['message' => 'تم الدفع بنجاح']);
     }
-    private function applyPayment(int $memberId, $amount, string $item, string $paymentMethod, string $transactionId, $orderId, string $transactionMethod, $subscriptionDate, string $mobileNumber): void {
+
+    private function applyPayment(int $memberId, $amount, string $item, string $paymentMethod, string $transactionId, $orderId, string $transactionMethod, $subscriptionDate, string $mobileNumber): void
+    {
         DB::transaction(function () use ($memberId, $amount, $item, $paymentMethod, $transactionId, $orderId, $transactionMethod, $subscriptionDate, $mobileNumber) {
             $paymentCat = $item === 'رسائل' ? 'كلي' : $this->paymobService->calculatePaymentCat($amount, $memberId, $item);
             if ($item === 'رسائل') {
@@ -88,10 +98,14 @@ class PaymentController extends Controller {
             Log::info('Paymob transaction completed', ['id' => $transaction->id]);
         });
     }
-    private function deductDue(PaymentTransaction $transaction): void {
+
+    private function deductDue(PaymentTransaction $transaction): void
+    {
         $this->paymobService->deductDue($transaction);
     }
-    private function createTransaction(int $memberId, int $amount, $paymentDate, string $paymentMethod, string $paymentCat, string $item, ?string $paymobIntentionId = null, string $transactionType): PaymentTransaction {
-        return paymentTransaction(memberId: $memberId, amount: $amount, paymentDate: $paymentDate, paymentMethod: $paymentMethod, paymentCategory: $paymentCat, transactionType: $transactionType, transactionCategory: 'ايداع', item: $item, inv: 0, paymobIntentionId: $paymobIntentionId, paymobStatus: 'pending', transactionMethod: 'دفع اونلاين',);
+
+    private function createTransaction(int $memberId, int $amount, $paymentDate, string $paymentMethod, string $paymentCat, string $item, ?string $paymobIntentionId, string $transactionType): PaymentTransaction
+    {
+        return paymentTransaction(memberId: $memberId, amount: $amount, paymentDate: $paymentDate, paymentMethod: $paymentMethod, paymentCategory: $paymentCat, transactionType: $transactionType, transactionCategory: 'ايداع', item: $item, inv: 0, paymobIntentionId: $paymobIntentionId, paymobStatus: 'pending', transactionMethod: 'دفع اونلاين');
     }
 }

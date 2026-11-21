@@ -14,7 +14,7 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         // RefreshDatabase wipes the database: never let it touch anything but the test one.
-        $database = config('database.connections.' . config('database.default') . '.database');
+        $database = config('database.connections.'.config('database.default').'.database');
         if ($database !== 'adendan_test') {
             throw new RuntimeException("Refusing to run tests against database [{$database}].");
         }

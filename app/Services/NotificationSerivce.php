@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
-class NotificationSerivce {
-    public function __construct(){}
-    public function handle(){}
+class NotificationSerivce
+{
+    public function __construct() {}
+
+    public function handle() {}
 }

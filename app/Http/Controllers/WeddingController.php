@@ -2,28 +2,33 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\WeddingRequest;
+use App\Imports\WeddingImport;
 use App\Models\Wedding;
 use Illuminate\Http\Request;
-use App\Imports\WeddingImport;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Http\Requests\WeddingRequest;
 
 class WeddingController extends Controller
 {
-    function __construct(){
+    public function __construct()
+    {
         $this->middleware('permission:الافراح');
     }
+
     public function index()
     {
         $weddings = Wedding::all();
+
         return view('pages.weddings', compact('weddings'));
     }
-    public function weddingStore(WeddingRequest $request) {
+
+    public function weddingStore(WeddingRequest $request)
+    {
         $validated = $request->validated();
         $fromTime = $request['from_time'];
         $toTime = $request['to_time'];
-        $fromTime12 = date("g:i A", strtotime($fromTime));
-        $toTime12 = date("g:i A", strtotime($toTime));
+        $fromTime12 = date('g:i A', strtotime($fromTime));
+        $toTime12 = date('g:i A', strtotime($toTime));
         $store = Wedding::create([
             'day' => $request['day'],
             'date' => $request['date'],
@@ -36,26 +41,33 @@ class WeddingController extends Controller
         if ($store) {
             $notificationSuccess = [
                 'message' => 'تم الإضافة بنجاح',
-                'alert-type' => 'success'
+                'alert-type' => 'success',
             ];
+
             return redirect()->back()->with($notificationSuccess);
         }
+
         return redirect()->back()->withErrors($validated);
     }
-    public function weddingRemove(int $id) {
+
+    public function weddingRemove(int $id)
+    {
         $removeWedding = Wedding::findOrFail($id);
         if ($removeWedding) {
             $delete = $removeWedding->delete();
             if ($delete) {
                 $notificationSuccess = [
-                    'message' => "تم الحذف بنجااح",
-                    'alert-type' => 'success'
+                    'message' => 'تم الحذف بنجااح',
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             }
         }
+
         return redirect()->back()->withErrors('خطأ أثناء الحذف');
     }
+
     public function weddingUpdate(Request $request)
     {
         $id = $request->id;
@@ -63,8 +75,8 @@ class WeddingController extends Controller
         if ($removeWedding) {
             $fromTime = $request['from_time'];
             $toTime = $request['to_time'];
-            $fromTime12 = date("g:i A", strtotime($fromTime));
-            $toTime12 = date("g:i A", strtotime($toTime));
+            $fromTime12 = date('g:i A', strtotime($fromTime));
+            $toTime12 = date('g:i A', strtotime($toTime));
             if ($request->filled('from_time')) {
                 $removeWedding->from_time = $fromTime12;
             }
@@ -82,21 +94,25 @@ class WeddingController extends Controller
             if ($update) {
                 $notificationSuccess = [
                     'message' => 'تم التحديث بنجاح',
-                    'alert-type' => 'success'
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             }
         }
     }
-    public function uploadBulkWedding(Request $request) {
+
+    public function uploadBulkWedding(Request $request)
+    {
         $request->validate([
             'import' => 'required|file|mimes:xlsx,xls',
         ]);
         Excel::import(new WeddingImport, $request['import'], null, \Maatwebsite\Excel\Excel::XLSX);
         $notificationSuccess = [
             'message' => 'تم رفع البيانات بنجاح',
-            'alert-type' => 'success'
+            'alert-type' => 'success',
         ];
+
         return redirect()->back()->with($notificationSuccess);
     }
 }

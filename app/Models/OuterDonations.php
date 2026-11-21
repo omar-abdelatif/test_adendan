@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Donators;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\LogOptions;
@@ -11,7 +10,9 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class OuterDonations extends Model
 {
     use HasFactory, LogsActivity;
+
     protected $table = 'outer_donations';
+
     protected $fillable = [
         'name',
         'donator_type',
@@ -21,22 +22,26 @@ class OuterDonations extends Model
         'donation_destination',
         'payment_method',
         'duration',
-        'donators_id'
+        'donators_id',
     ];
+
     public function donators()
     {
         return $this->belongsTo(Donators::class);
     }
+
     protected function getDynamicLogName(): string
     {
         return 'OuterDonations';
     }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()->logAll()->useLogName($this->getDynamicLogName())->logOnlyDirty()->setDescriptionForEvent(function (string $eventName) {
             return $this->getTranslatedDescription($eventName);
         });
     }
+
     protected function getTranslatedDescription(string $eventName): string
     {
         $subPayment = [
@@ -45,6 +50,7 @@ class OuterDonations extends Model
 
         $payment = $subPayment[$eventName] ?? 'حدث غير معروف.';
         $donatorName = $this->donators->name ?? 'غير معروف';
+
         return strtr($payment, [
             ':donators_name' => $donatorName,
         ]);

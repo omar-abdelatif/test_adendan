@@ -14,10 +14,11 @@ class AccessControlTest extends TestCase
 
     private function staff(array $permissions = []): User
     {
-        $user = User::create(['name' => 'Staff', 'email' => uniqid() . '@example.test', 'password' => bcrypt('secret')]);
+        $user = User::create(['name' => 'Staff', 'email' => uniqid().'@example.test', 'password' => bcrypt('secret')]);
         foreach ($permissions as $name) {
             $user->givePermissionTo(Permission::findOrCreate($name, 'web'));
         }
+
         return $user;
     }
 

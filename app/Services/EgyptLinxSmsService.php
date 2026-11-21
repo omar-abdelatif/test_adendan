@@ -7,18 +7,27 @@ use App\Models\SMSSubscribers;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 
-class EgyptLinxSmsService {
+class EgyptLinxSmsService
+{
     private string $provider;
+
     private string $password;
+
     private string $sender;
+
     private string $baseUrl = 'https://bulk.egypt-linx.com/api';
+
     private string $balanceUrl = 'https://bulk.egypt-linx.com';
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->provider = config('services.egyptlinx.provider');
-        $this->password  = config('services.egyptlinx.password');
-        $this->sender    = config('services.egyptlinx.sender');
+        $this->password = config('services.egyptlinx.password');
+        $this->sender = config('services.egyptlinx.sender');
     }
-    public function storeOrUpdateSmsSubscriber(?int $memberId, string $mobileNo, $subscriptionDate): void {
+
+    public function storeOrUpdateSmsSubscriber(?int $memberId, string $mobileNo, $subscriptionDate): void
+    {
         $exists = SMSSubscribers::where('member_id', $memberId)->where('active_sms', 0)->exists();
         $fees = $this->smsFees();
         if ($exists) {
@@ -28,6 +37,7 @@ class EgyptLinxSmsService {
                 'amount' => $fees,
                 'active_sms' => 1,
             ]);
+
             return;
         } else {
             SMSSubscribers::create([
@@ -40,25 +50,40 @@ class EgyptLinxSmsService {
             ]);
         }
     }
-    public function calculateSmsCount(string $message): int {
+
+    public function calculateSmsCount(string $message): int
+    {
         $length = mb_strlen($message);
-        if ($length <= 70) return 1;
-        if ($length <= 134) return 2;
-        if ($length <= 201) return 3;
-        if ($length <= 268) return 4;
-        if ($length <= 335) return 5;
+        if ($length <= 70) {
+            return 1;
+        }
+        if ($length <= 134) {
+            return 2;
+        }
+        if ($length <= 201) {
+            return 3;
+        }
+        if ($length <= 268) {
+            return 4;
+        }
+        if ($length <= 335) {
+            return 5;
+        }
+
         return ceil(($length - 70) / 67) + 1;
     }
-    public function sendArabic(array $numbers, string $message) {
+
+    public function sendArabic(array $numbers, string $message)
+    {
         $results = [];
         foreach ($numbers as $number) {
             $response = Http::get($this->baseUrl, [
                 'Provider' => $this->provider,
                 'Password' => $this->password,
-                'Sender'   => $this->sender,
-                'Number'   => $number,
-                'Binary'   => '00',
-                'Code'     => $message,
+                'Sender' => $this->sender,
+                'Number' => $number,
+                'Binary' => '00',
+                'Code' => $message,
             ]);
             $results[] = [
                 'number' => $number,
@@ -67,37 +92,50 @@ class EgyptLinxSmsService {
                 'status' => $response->status(),
             ];
         }
+
         return $results;
     }
-    public function getBalance(): int|float {
-        $response = Http::get($this->balanceUrl . '/Balance', [
+
+    public function getBalance(): int|float
+    {
+        $response = Http::get($this->balanceUrl.'/Balance', [
             'Provider' => $this->provider,
             'Password' => $this->password,
         ]);
+
         return $response->successful() ? (float) $response->body() : 0;
     }
-    public function checkBalance(int $balance, int $totalNeeded) {
+
+    public function checkBalance(int $balance, int $totalNeeded)
+    {
         if ($balance < $totalNeeded) {
             return response()->json([
-                'error'        => true,
-                'message'      => "الرصيد لا يكفي، الرصيد الحالي: {$balance} رسالة، المطلوب: {$totalNeeded} رسالة",
-                'balance'      => $balance,
+                'error' => true,
+                'message' => "الرصيد لا يكفي، الرصيد الحالي: {$balance} رسالة، المطلوب: {$totalNeeded} رسالة",
+                'balance' => $balance,
                 'total_needed' => $totalNeeded,
             ], 422);
         }
     }
-    public function getSmsExpiryDate($date): Carbon {
+
+    public function getSmsExpiryDate($date): Carbon
+    {
         $month = $date->month;
-        $year  = $date->year;
+        $year = $date->year;
         if ($month >= 1 && $month <= 6) {
             return Carbon::create($year, 6, 30)->endOfDay();
         }
+
         return Carbon::create($year + 1, 6, 30)->endOfDay();
     }
-    public function smsFees(): int {
+
+    public function smsFees(): int
+    {
         return SMSFEES::first()->amount;
     }
-    public function renewSmsSubscription(?int $memberId, int $amount, $subscriptionDate): void {
+
+    public function renewSmsSubscription(?int $memberId, int $amount, $subscriptionDate): void
+    {
         $user = SMSSubscribers::where('member_id', $memberId)->first();
         $user->update([
             'subscription_start_date' => $subscriptionDate,

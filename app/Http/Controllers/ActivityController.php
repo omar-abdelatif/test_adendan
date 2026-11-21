@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\SpatieActivityLog;
 
-class ActivityController extends Controller {
-    function __construct() {
+class ActivityController extends Controller
+{
+    public function __construct()
+    {
         $this->middleware('permission:سجل النشاطات');
     }
-    public function index() {
+
+    public function index()
+    {
         $activities = SpatieActivityLog::latest()->get();
+
         return view('pages.activity.index', compact('activities'));
     }
 }

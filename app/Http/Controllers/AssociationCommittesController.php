@@ -2,38 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\RequestsAssociationCommittes;
 use App\Models\AssociationCommittes;
 use Illuminate\Http\Request;
 
 class AssociationCommittesController extends Controller
 {
-    function __construct(){
+    public function __construct()
+    {
         $this->middleware('permission:اللجان');
     }
+
     public function index()
     {
         $associations = AssociationCommittes::all();
+
         return view('pages.association_committes', compact('associations'));
     }
-    public  function store(RequestsAssociationCommittes $request)
+
+    public function store(RequestsAssociationCommittes $request)
     {
         $validateData = $request->validated();
         $store = AssociationCommittes::create($validateData);
         if ($store) {
             $notificationSuccess = [
-                'message' => "تم الإضافة بنجاح",
-                'alert-type' => 'success'
+                'message' => 'تم الإضافة بنجاح',
+                'alert-type' => 'success',
             ];
+
             return redirect()->back()->with($notificationSuccess);
         }
         $notificationError = [
-            'message' => "حدث خطأ يرجى المحاولة مره أخرى",
-            'alert-type' => 'error'
+            'message' => 'حدث خطأ يرجى المحاولة مره أخرى',
+            'alert-type' => 'error',
         ];
+
         return redirect()->back()->with($notificationError);
     }
+
     public function remove(int $id)
     {
         $remove = AssociationCommittes::findOrFail($id);
@@ -42,17 +48,20 @@ class AssociationCommittesController extends Controller
             if ($delete) {
                 $notificationSuccess = [
                     'message' => 'تم الحذف بنجاح',
-                    'alert-type' => 'success'
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             }
         }
         $notificationError = [
             'message' => 'هناك خطأ ما يرجى المحاولة',
-            'alert-type' => 'error'
+            'alert-type' => 'error',
         ];
+
         return redirect()->back()->with($notificationError);
     }
+
     public function update(Request $request)
     {
         $validated = $request->validated();
@@ -63,21 +72,24 @@ class AssociationCommittesController extends Controller
             if ($update) {
                 $notificationSuccess = [
                     'message' => 'تم التعديل بنجاح',
-                    'alert-type' => 'success'
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             } else {
                 $notificationError = [
                     'message' => 'حدث خطأ أثناء التعديل',
-                    'alert-type' => 'error'
+                    'alert-type' => 'error',
                 ];
+
                 return redirect()->back()->with($notificationError);
             }
         }
         $notificationError = [
             'message' => 'حدث خطأ أثناء التعديل',
-            'alert-type' => 'error'
+            'alert-type' => 'error',
         ];
+
         return redirect()->back()->with($notificationError);
     }
 }

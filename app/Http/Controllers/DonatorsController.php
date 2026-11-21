@@ -9,15 +9,19 @@ use Illuminate\Http\Request;
 
 class DonatorsController extends Controller
 {
-    function __construct(){
+    public function __construct()
+    {
         $this->middleware('permission:المتبرعين');
     }
+
     public function index()
     {
         $subscribers = Subscribers::all();
         $allDonators = Donators::all();
+
         return view('pages.donations.donators', compact('allDonators', 'subscribers'));
     }
+
     public function storeDonator(RequestDonators $request)
     {
         $validated = $request->validated();
@@ -25,18 +29,21 @@ class DonatorsController extends Controller
             $store = Donators::create($request->all());
             if ($store) {
                 $notificationSuccess = [
-                    'message' => "تم الإضافة بنجاح",
-                    'alert-type' => "success"
+                    'message' => 'تم الإضافة بنجاح',
+                    'alert-type' => 'success',
                 ];
+
                 return redirect()->back()->with($notificationSuccess);
             }
         }
         $notificationError = [
             'message' => 'حدث خطأ... برجاء المحاولة مره اخرى',
-            'alert-type' => 'error'
+            'alert-type' => 'error',
         ];
+
         return redirect()->back()->with($notificationError);
     }
+
     public function removeDonator(int $id)
     {
         $donator = Donators::find($id);
@@ -50,18 +57,21 @@ class DonatorsController extends Controller
             }
             if ($remove) {
                 $notificationSuccess = [
-                    'message' => "تم الحذف بنجاح!",
-                    'alert-type' => "success"
+                    'message' => 'تم الحذف بنجاح!',
+                    'alert-type' => 'success',
                 ];
+
                 return back()->with($notificationSuccess);
             }
         }
         $notificationError = [
             'message' => 'لم يتم العثور على البيانات',
-            'alert-type' => 'error'
+            'alert-type' => 'error',
         ];
+
         return redirect()->back()->with($notificationError);
     }
+
     public function donatorUpdate(Request $request)
     {
         $id = $request->id;
@@ -71,16 +81,18 @@ class DonatorsController extends Controller
             if ($update) {
                 $donator->outerDonations()->update(['name' => $request->name]);
                 $notificationSuccess = [
-                    'message' => "تم التحديث بنجاح!",
-                    'alert-type' => "success"
+                    'message' => 'تم التحديث بنجاح!',
+                    'alert-type' => 'success',
                 ];
+
                 return back()->with($notificationSuccess);
             }
         }
         $notificationError = [
             'message' => 'حدث خطأ أثناء التحديث',
-            'alert-type' => 'error'
+            'alert-type' => 'error',
         ];
+
         return redirect()->back()->with($notificationError);
     }
 }

@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SMSSubscribers extends Model {
+class SMSSubscribers extends Model
+{
     protected $table = 'sms_subscribers';
+
     protected $fillable = [
         'member_id',
         'mobile_no',
@@ -14,7 +16,9 @@ class SMSSubscribers extends Model {
         'subscription_expiry_date',
         'active_sms',
     ];
-    public function subscriber(){
+
+    public function subscriber()
+    {
         return $this->belongTo(Subscribers::class, 'member_id', 'member_id');
     }
 }

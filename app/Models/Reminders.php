@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Reminders extends Model {
+class Reminders extends Model
+{
     protected $fillable = [
         'message',
         'type',
