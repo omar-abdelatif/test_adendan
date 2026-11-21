@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -79,7 +78,7 @@ class LoginController extends Controller
         if ($this->attemptLogin($request)) {
             $this->clearLoginAttempts($request);
             $user = $this->guard()->user();
-            if ($user && $user instanceof Model) {
+            if ($user) {
                 activity('auth')->performedOn($user)->causedBy($user)->withProperties([
                     'ip' => $request->ip(),
                     'user_agent' => $request->userAgent(),
@@ -97,7 +96,7 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         $user = $this->guard()->user();
-        if ($user && $user instanceof Model) {
+        if ($user) {
             activity('auth')->performedOn($user)->causedBy($user)->withProperties([
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),

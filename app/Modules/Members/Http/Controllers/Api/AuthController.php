@@ -7,7 +7,6 @@ use App\Models\Subscribers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Laravel\Sanctum\PersonalAccessToken;
 
 /** Mobile app login with national ID + password (Sanctum token). */
 class AuthController extends Controller
@@ -37,10 +36,7 @@ class AuthController extends Controller
     {
         $member = $request->user();
         $member->forceFill(['fcm_token' => null])->save();
-        $token = $member->currentAccessToken();
-        if ($token instanceof PersonalAccessToken) {
-            $token->delete();
-        }
+        $member->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logged out successfully']);
     }

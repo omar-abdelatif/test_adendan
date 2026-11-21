@@ -5,10 +5,41 @@ website, and a JSON API for the members' mobile app.
 
 ## Stack
 
-- PHP 8.3, Laravel, MySQL 8
+- PHP 8.2+ (8.3 recommended), Laravel 12, MySQL 8
 - Blade + Bootstrap 5 + Vite
 - Sanctum (mobile API), Spatie Permission and Activitylog
 - Paymob (online payments), EgyptLinx (SMS), Firebase Cloud Messaging
+
+## Architecture
+
+A modular monolith. Each module under `app/Modules` has the same layers, and
+dependencies only point inwards:
+
+| Layer | Holds | Knows about |
+| --- | --- | --- |
+| `Domain` | Enums, value objects (`Money`), rules, contracts (`PaymentGateway`, `SmsSender`) | nothing else |
+| `Application` | Use cases (`PayDue`, `RegisterMember`, `ManageNews` ...), report queries | Domain, Eloquent models |
+| `Infrastructure` | Paymob, EgyptLinx, Firebase, Excel imports, file storage | Domain contracts |
+| `Http` | Thin controllers, form requests, the module's routes | Application |
+
+| Module | Covers |
+| --- | --- |
+| `Finance` | Dues, office and online payments, donations, safe/bank ledger, expenses, finance reports |
+| `Members` | Members, profile-change approvals, member reports, mobile login, public dues lookup |
+| `Messaging` | Paid SMS service, reminders, announcements, push notifications |
+| `Content` | News, comments, board, committees, website home |
+| `Directory` | Tombs, weddings, craftsmen |
+| `Access` | Staff accounts, roles, permissions, activity log |
+| `Shared` | `Money`, image storage, Excel value parsing, dashboard alerts |
+
+Rules worth knowing:
+
+- Every money movement goes through `Finance\Application\Ledger`, which writes
+  `payment_transactions` and moves the safe or bank balance in one transaction.
+- Eloquent models stay in `app/Models`: Sanctum, Spatie and the activity log store
+  their class names in the database.
+- Stored Arabic values (for example `إشتراك`) live in enums, never as strings in code.
+- Each module registers its own routes from its service provider (`config/app.php`).
 
 ## Local setup
 
