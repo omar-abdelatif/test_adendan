@@ -1,5 +1,8 @@
 <?php
 
+use App\Modules\Access\AccessServiceProvider;
+use App\Modules\Content\ContentServiceProvider;
+use App\Modules\Directory\DirectoryServiceProvider;
 use App\Modules\Finance\FinanceServiceProvider;
 use App\Modules\Members\MembersServiceProvider;
 use App\Modules\Messaging\MessagingServiceProvider;
@@ -231,6 +234,9 @@ return [
         FinanceServiceProvider::class,
         MessagingServiceProvider::class,
         MembersServiceProvider::class,
+        ContentServiceProvider::class,
+        DirectoryServiceProvider::class,
+        AccessServiceProvider::class,
 
     ],
 

@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $item
  * @property string|null $account
  * @property string|null $proof_img
+ * @property int|string|null $inv_no int locally; text on servers where image names were stored in it
  * @property-read string|null $proof_url
  */
 class PaymentTransaction extends Model

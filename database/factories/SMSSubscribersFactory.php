@@ -15,7 +15,8 @@ class SMSSubscribersFactory extends Factory
     public function definition(): array
     {
         return [
-            'member_id' => fake()->unique()->numberBetween(1000, 999999),
+            // A non-member by default; set member_id to an existing member when needed.
+            'member_id' => null,
             'mobile_no' => fake()->unique()->numberBetween(1000000000, 1599999999),
             'amount' => 60,
             'subscription_start_date' => now()->toDateString(),

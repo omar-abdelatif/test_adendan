@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Modules\Access\Domain\Permissions;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
@@ -18,35 +19,6 @@ use Spatie\Permission\PermissionRegistrar;
  */
 class AdminSeeder extends Seeder
 {
-    /** Permission names used in routes (permission:...) and views (@can). */
-    private const PERMISSIONS = [
-        'لوحة التحكم',
-        'الاخبار',
-        'المشتركين',
-        'مشترك جديد',
-        'الاشتراكات',
-        'الإشتراك السنوي',
-        'المديونيات',
-        'مديونية الاشتراك',
-        'مديونية التبرعات',
-        'التبرعات',
-        'المتبرعين',
-        'التبرعات الخارجية',
-        'النثريات',
-        'مجلس الادارة',
-        'اللجان',
-        'الحرفيين',
-        'المقابر',
-        'الافراح',
-        'الرسائل',
-        'التقارير',
-        'المستخدمين',
-        'الادوار',
-        'الصلاحيات',
-        'سجل النشاطات',
-        'sms-delete-subscriber',
-    ];
-
     public function run(): void
     {
         $email = env('ADMIN_EMAIL');
@@ -60,7 +32,7 @@ class AdminSeeder extends Seeder
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        foreach (self::PERMISSIONS as $name) {
+        foreach (Permissions::ALL as $name) {
             Permission::firstOrCreate(['name' => $name, 'guard_name' => 'web']);
         }
 

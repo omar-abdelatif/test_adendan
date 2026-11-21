@@ -110,15 +110,9 @@
                                                             <i class="fa-solid fa-trash"></i>
                                                         </button>
                                                         {{-- ! Donation History ! --}}
-                                                        @if ($user->role === 'subscriptions')
-                                                            <a href="{{route('subscriptionRole.outer_donations.history', $donator->id)}}" title="التبرعات السابقة" class="btn btn-primary px-2 py-1">
-                                                                <i class="fa-solid fa-book-heart"></i>
-                                                            </a>
-                                                        @else
-                                                            <a href="{{route('outer_donations.history', $donator->id)}}" title="التبرعات السابقة" class="btn btn-primary px-2 py-1">
-                                                                <i class="fa-solid fa-book-heart"></i>
-                                                            </a>
-                                                        @endif
+                                                        <a href="{{route('outer_donations.history', $donator->id)}}" title="التبرعات السابقة" class="btn btn-primary px-2 py-1">
+                                                            <i class="fa-solid fa-book-heart"></i>
+                                                        </a>
                                                     </div>
                                                 </div>
                                                 {{-- ! Delete ! --}}

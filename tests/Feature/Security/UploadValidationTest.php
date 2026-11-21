@@ -82,6 +82,6 @@ class UploadValidationTest extends TestCase
 
     private function newsForm(News $news, array $thumbnails): array
     {
-        return ['id' => $news->id, 'title' => 'خبر', 'description' => 'نص', 'category' => 'عام', 'thumbnail' => $thumbnails];
+        return ['id' => $news->id, 'title' => 'خبر', 'description' => 'نص', 'category' => 'أخبار عامة', 'thumbnail' => $thumbnails];
     }
 }

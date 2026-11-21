@@ -5,8 +5,5 @@ includes:
 parameters:
     paths:
         - app
-    # Raised step by step as modules are refactored (target: 6).
-    level: 3
+    level: 5
     tmpDir: storage/framework/phpstan
-    ignoreErrors:
-        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder#'

@@ -259,7 +259,7 @@
                         @csrf
                         <div class="form-group">
                             <label for="fees_amount" class="form-label text-muted">المبلغ (ج.م)</label>
-                            <input type="number" name="amount" id="fees_amount" class="form-control" value="{{ $fees->amount }}" min="0" required>
+                            <input type="number" name="amount" id="fees_amount" class="form-control" value="{{ $fees?->amount ?? 0 }}" min="0" required>
                         </div>
                         <button class="btn btn-success fw-bold text-white mt-3 w-100" type="submit">تحديث الرسوم</button>
                     </form>
@@ -352,7 +352,7 @@
                             </div>
                         </div>
                         <div class="font-Info">
-                            <h5 class="mb-1 text-muted" id="fees">{{ $fees->amount }} ج.م</h5>
+                            <h5 class="mb-1 text-muted" id="fees">{{ $fees?->amount ?? 0 }} ج.م</h5>
                         </div>
                     </div>
                 </div>

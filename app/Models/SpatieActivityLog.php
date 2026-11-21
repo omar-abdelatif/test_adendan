@@ -9,6 +9,6 @@ class SpatieActivityLog extends SpatieActivity
 {
     protected function customCauser(): Attribute
     {
-        return Attribute::make(get: fn () => $this->causer?->name);
+        return Attribute::make(get: fn () => $this->causer?->getAttribute('name'));
     }
 }

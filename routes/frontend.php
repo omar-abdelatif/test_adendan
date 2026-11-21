@@ -1,36 +1,14 @@
 <?php
 
-use App\Http\Controllers\Frontend\AssociationsCommittesController;
-use App\Http\Controllers\Frontend\BoardMembersController;
-use App\Http\Controllers\Frontend\FrontDonationController;
-use App\Http\Controllers\Frontend\MasterController;
-use App\Http\Controllers\Frontend\News\NewsController;
-use App\Http\Controllers\Frontend\SearchController;
-use App\Http\Controllers\Frontend\WorkerController;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
+/*
+ * Static website pages. Pages with data are registered by the Content,
+ * Members and Directory modules.
+ */
 
-Auth::routes(['register' => false]);
+use Illuminate\Support\Facades\Route;
 
 Route::name('site.')->group(function () {
     Route::view('about', 'frontend.pages.about')->name('about');
     Route::view('contact_us', 'frontend.pages.contact')->name('contact');
-    Route::get('/', [MasterController::class, 'index'])->name('index');
-    Route::controller(NewsController::class)->group(function () {
-        Route::get('all_news', 'index')->name('news');
-        Route::get('all_news/single_news/{id}', 'newsDetails')->name('single_news');
-    });
-    Route::controller(SearchController::class)->group(function () {
-        Route::get('search', 'index')->name('search');
-    });
-    Route::controller(AssociationsCommittesController::class)->group(function () {
-        Route::get('assossiation_committees', 'index')->name('assossiation');
-        Route::get('assossiation_committees/assossiation_details/{id}', 'associationDetails')->name('assossiation_details');
-    });
-    Route::controller(FrontDonationController::class)->group(function () {
-        Route::get('donate_page', 'index')->name('donate');
-        Route::post('make_donation', 'store')->name('store');
-    });
-    Route::get('board_members', [BoardMembersController::class, 'index'])->name('borders');
-    Route::get('workers/all', [WorkerController::class, 'index'])->name('workers');
+    Route::view('donate_page', 'frontend.pages.donate')->name('donate');
 });

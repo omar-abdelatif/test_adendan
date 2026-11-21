@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SMSSubscribers extends Model
 {
@@ -20,8 +21,8 @@ class SMSSubscribers extends Model
         'active_sms',
     ];
 
-    public function subscriber()
+    public function subscriber(): BelongsTo
     {
-        return $this->belongTo(Subscribers::class, 'member_id', 'member_id');
+        return $this->belongsTo(Subscribers::class, 'member_id', 'member_id');
     }
 }

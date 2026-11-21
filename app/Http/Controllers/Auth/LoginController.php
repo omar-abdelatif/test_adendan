@@ -42,7 +42,7 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
     }
 
-    protected function authenticated(Request $request)
+    protected function authenticated(Request $request, mixed $user)
     {
         $notification = [
             'message' => 'تم تسجيل الدخول',
@@ -67,7 +67,17 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $this->validateLogin($request);
+
+        // This override replaced Laravel's login(), which also enforces the
+        // failed-attempt lockout; without these lines passwords could be guessed endlessly.
+        if ($this->hasTooManyLoginAttempts($request)) {
+            $this->fireLockoutEvent($request);
+
+            return $this->sendLockoutResponse($request);
+        }
+
         if ($this->attemptLogin($request)) {
+            $this->clearLoginAttempts($request);
             $user = $this->guard()->user();
             if ($user && $user instanceof Model) {
                 activity('auth')->performedOn($user)->causedBy($user)->withProperties([

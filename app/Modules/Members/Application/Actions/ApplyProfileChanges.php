@@ -73,7 +73,7 @@ class ApplyProfileChanges
 
         return DB::transaction(function () use ($member, $reviewed) {
             $member->update(array_filter([
-                'name' => $reviewed['name'] ?? null,
+                'name' => $reviewed['name'],
                 'address' => $reviewed['address'] ?? null,
                 'mobile_no' => $reviewed['mobile_no'] ?? null,
                 'ssn' => $reviewed['ssn'] ?? null,

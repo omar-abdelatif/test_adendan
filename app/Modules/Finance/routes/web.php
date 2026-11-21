@@ -8,6 +8,7 @@
 
 use App\Modules\Finance\Http\Controllers\Admin\CostYearsController;
 use App\Modules\Finance\Http\Controllers\Admin\DonationsController;
+use App\Modules\Finance\Http\Controllers\Admin\DonorsController;
 use App\Modules\Finance\Http\Controllers\Admin\DuesController;
 use App\Modules\Finance\Http\Controllers\Admin\ExpensesController;
 use App\Modules\Finance\Http\Controllers\Admin\FinanceReportsController;
@@ -64,3 +65,10 @@ Route::controller(FinanceReportsController::class)->group(function () {
 });
 
 Route::post('import-payment-transactions', TransactionImportController::class)->name('payment_transactions.import');
+
+Route::prefix('donators')->controller(DonorsController::class)->group(function () {
+    Route::get('donators/all', 'index')->name('donators.all');
+    Route::post('donators/store', 'store')->name('donators.store');
+    Route::post('donators/update', 'update')->name('donators.update');
+    Route::get('donators/remove/{donor}', 'destroy')->name('donators.remove');
+});
