@@ -9,6 +9,7 @@ class Reminders extends Model {
         'message',
         'type',
         'sent_at',
-        'sms_subscribers_id',
+        'subscriber_id',
+        'mobile_no',
     ];
 }
