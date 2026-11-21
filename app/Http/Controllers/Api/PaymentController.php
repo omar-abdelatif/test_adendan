@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PaymentTransaction;
 use App\Services\EgyptLinxSmsService;
 use App\Services\PaymobService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,41 +14,36 @@ use Illuminate\Support\Facades\Log;
 class PaymentController extends Controller {
     public function __construct(private PaymobService $paymobService, protected EgyptLinxSmsService $egyptLinkService) {}
     public function callback(Request $request) {
-        Log::info('=== CALLBACK DEBUG ===');
-        $allData = $request->all();
-        Log::info('Full request:', $allData);
-        // $hmac = $request->query('hmac');
         $type = $request->input('type');
         $obj = $request->input('obj');
         if ($type !== 'TRANSACTION' || !is_array($obj)) {
-            Log::error('Invalid structure', ['type' => $type]);
+            Log::warning('Paymob callback with invalid structure', ['type' => $type]);
             return response()->json(['message' => 'بيانات غير صحيحة'], 400);
+        }
+        if (!$this->paymobService->verifyHmac($obj, $request->query('hmac'))) {
+            return response()->json(['message' => 'بيانات غير صحيحة (فشل التشفير)'], 403);
         }
         $merchantOrderId = $obj['order']['merchant_order_id'] ?? null;
         $orderId = $obj['order']['id'] ?? null;
         $transactionId = $obj['id'] ?? null;
         $amountCents = $obj['amount_cents'] ?? 0;
         $success = $obj['success'] ?? false;
-        Log::info('Extracted data:', [
-            'merchant_order_id' => $merchantOrderId,
-            'success' => $success ? 'yes' : 'no',
-        ]);
-        if (!$merchantOrderId) {
-            Log::error('merchant_order_id is NULL');
+        if (!$merchantOrderId || !$transactionId) {
+            Log::warning('Paymob callback missing ids', ['transaction_id' => $transactionId]);
             return response()->json(['message' => 'بيانات ناقصة'], 400);
         }
         if (!$success) {
-            Log::error('Payment not successful');
+            Log::info('Paymob payment not successful', ['transaction_id' => $transactionId]);
             return response()->json(['message' => 'فشل الدفع'], 400);
         }
-        // ✅ تحقق من الـ HMAC (من $obj مش من $data)
-        // if (!$hmac || !$this->paymobService->verifyHmac($obj, $hmac)) {
-        //     Log::error('HMAC verification failed');
-        //     return response()->json(['message' => 'بيانات غير صحيحة (فشل التشفير)'], 400);
-        // }
+        // Paymob retries callbacks: a transaction we already recorded must not be applied twice.
+        if (PaymentTransaction::where('paymob_transaction_id', (string) $transactionId)->exists()) {
+            return response()->json(['message' => 'تم تسجيل العملية من قبل']);
+        }
+        // merchant_order_id = memberId-item-transactionMethod-<ref>-mobile
         $userData = explode('-', $merchantOrderId);
-        if (count($userData) < 2) {
-            Log::error('Invalid merchant_order_id format', ['value' => $merchantOrderId]);
+        if (count($userData) < 5) {
+            Log::warning('Invalid merchant_order_id format', ['transaction_id' => $transactionId]);
             return response()->json(['message' => 'بيانات غير صحيحة'], 400);
         }
         $memberId = (int) $userData[0];
@@ -55,14 +51,23 @@ class PaymentController extends Controller {
         $amount = $amountCents / 100;
         $subscriptionDate = now();
         $transactionMethod = $userData[2];
-        $mobileNumber = (int) $userData[4];
+        $mobileNumber = trim($userData[4]);
         $paymentMethod = $obj['source_data']['sub_type'] ?? 'wallet';
-        Log::info('Processing transaction:', [
+        Log::info('Processing Paymob transaction', [
+            'transaction_id' => $transactionId,
             'member_id' => $memberId,
             'item' => $item,
             'amount' => $amount,
-            'method' => $paymentMethod,
         ]);
+        try {
+            $this->applyPayment($memberId, $amount, $item, $paymentMethod, (string) $transactionId, $orderId, $transactionMethod, $subscriptionDate, $mobileNumber);
+        } catch (UniqueConstraintViolationException) {
+            // A parallel retry of the same callback won the race; the payment is already recorded.
+            return response()->json(['message' => 'تم تسجيل العملية من قبل']);
+        }
+        return response()->json(['message' => 'تم الدفع بنجاح']);
+    }
+    private function applyPayment(int $memberId, $amount, string $item, string $paymentMethod, string $transactionId, $orderId, string $transactionMethod, $subscriptionDate, string $mobileNumber): void {
         DB::transaction(function () use ($memberId, $amount, $item, $paymentMethod, $transactionId, $orderId, $transactionMethod, $subscriptionDate, $mobileNumber) {
             $paymentCat = $item === 'رسائل' ? 'كلي' : $this->paymobService->calculatePaymentCat($amount, $memberId, $item);
             if ($item === 'رسائل') {
@@ -80,9 +85,8 @@ class PaymentController extends Controller {
                 ]);
                 $this->deductDue($transaction);
             }
-            Log::info('Transaction completed:', ['id' => $transaction->id]);
+            Log::info('Paymob transaction completed', ['id' => $transaction->id]);
         });
-        return response()->json(['message' => 'تم الدفع بنجاح']);
     }
     private function deductDue(PaymentTransaction $transaction): void {
         $this->paymobService->deductDue($transaction);

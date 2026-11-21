@@ -71,10 +71,12 @@ class SearchController extends Controller
             }
         }
         $noDelays = 'لا توجد مستحقات';
-        $subsDues = $member->dues()->where('transaction_type', 'إشتراك')->get();
-        $donDues = $member->dues()->where('transaction_type', 'تبرعات')->get();
+        // Public page: only what the search screen shows, never the member's personal data.
+        $dueColumns = ['id', 'item', 'total_amount', 'amount_paid', 'amount_remaining'];
+        $subsDues = $member->dues()->where('transaction_type', 'إشتراك')->get($dueColumns);
+        $donDues = $member->dues()->where('transaction_type', 'تبرعات')->get($dueColumns);
         return response()->json(['status' => true, 'data' => [
-            'member' => $member,
+            'member' => $member->only(['name', 'member_id', 'status']),
             'searched' => true,
             'subsDues' => $subsDues,
             'noDelays' => $noDelays,

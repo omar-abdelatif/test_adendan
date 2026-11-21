@@ -8,39 +8,38 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PaymobService {
-    public function verifyHmac(array $data, string $receivedHmac): bool {
+    /**
+     * Paymob signs the "processed" callback by concatenating these fields of `obj`
+     * in this exact order. Booleans are signed as the words "true"/"false".
+     */
+    private const HMAC_FIELDS = [
+        'amount_cents', 'created_at', 'currency', 'error_occured', 'has_parent_transaction',
+        'id', 'integration_id', 'is_3d_secure', 'is_auth', 'is_capture', 'is_refunded',
+        'is_standalone_payment', 'is_voided', 'order.id', 'owner', 'pending',
+        'source_data.pan', 'source_data.sub_type', 'source_data.type', 'success',
+    ];
+
+    public function verifyHmac(array $data, ?string $receivedHmac): bool {
         $secret = config('services.paymob.hmac_secret');
-        $fields = [
-            (int) ($data['amount_cents'] ?? 0),
-            $data['created_at'] ?? '',
-            $data['currency'] ?? '',
-            (int) ($data['error_occured'] ?? 0),
-            (int) ($data['has_parent_transaction'] ?? 0),
-            (int) ($data['id'] ?? 0),
-            (int) ($data['integration_id'] ?? 0),
-            (int) ($data['is_3d_secure'] ?? 0),
-            (int) ($data['is_auth'] ?? 0),
-            (int) ($data['is_capture'] ?? 0),
-            (int) ($data['is_refunded'] ?? 0),
-            (int) ($data['is_standalone_payment'] ?? 0),
-            (int) ($data['is_voided'] ?? 0),
-            (int) ($data['order']['id'] ?? 0),
-            (int) ($data['owner'] ?? 0),
-            (int) ($data['pending'] ?? 0),
-            $data['source_data']['pan'] ?? '',
-            $data['source_data']['sub_type'] ?? '',
-            $data['source_data']['type'] ?? '',
-            $data['success'] ? 'true' : 'false',
-        ];
-        $str = implode('', $fields);
-        $hash = hash_hmac('sha512', $str, $secret);
-        Log::info('HMAC Verification:', [
-            'fields_string' => $str,
-            'calculated_hash' => $hash,
-            'received_hash' => $receivedHmac,
-            'match' => $hash === $receivedHmac,
-        ]);
-        return $hash === $receivedHmac;
+        if (!$secret || !$receivedHmac) {
+            return false;
+        }
+        $hash = hash_hmac('sha512', $this->hmacString($data), $secret);
+        $valid = hash_equals($hash, strtolower($receivedHmac));
+        if (!$valid) {
+            Log::warning('Paymob HMAC verification failed', ['transaction_id' => $data['id'] ?? null]);
+        }
+        return $valid;
+    }
+
+    public function hmacString(array $data): string {
+        return implode('', array_map(function (string $key) use ($data) {
+            $value = data_get($data, $key, '');
+            if (is_bool($value)) {
+                return $value ? 'true' : 'false';
+            }
+            return (string) ($value ?? '');
+        }, self::HMAC_FIELDS));
     }
     public function deductDue(PaymentTransaction $transaction): void {
         $due = Due::where('member_id', $transaction->member_id)->where('item', $transaction->item)->first();

@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use App\Models\Subscribers;
 
 class SubscriberDataController extends Controller {
+    public function __construct() {
+        $this->middleware('permission:التقارير');
+    }
     public function approve(Request $request){
         $member = Subscribers::where('member_id', $request->member_id)->first();
         if ($member) {

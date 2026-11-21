@@ -10,7 +10,7 @@ use App\Http\Controllers\Frontend\BoardMembersController;
 use App\Http\Controllers\Frontend\FrontDonationController;
 use App\Http\Controllers\Frontend\AssociationsCommittesController;
 
-Auth::routes();
+Auth::routes(['register' => false]);
 
 Route::name('site.')->group(function () {
     Route::view('about', 'frontend.pages.about')->name('about');
@@ -22,9 +22,9 @@ Route::name('site.')->group(function () {
     });
     Route::controller(SearchController::class)->group(function () {
         Route::get('search', 'index')->name('search');
-        Route::post('result', 'result')->name('result');
+        Route::post('result', 'result')->middleware('throttle:public-lookup')->name('result');
         Route::get('search-details/{name}', 'searechDetails')->name('searchDetails');
-        Route::post('store-member-main-data', 'storeMainMemberData')->name('storeMemberMainData');
+        Route::post('store-member-main-data', 'storeMainMemberData')->middleware('throttle:public-lookup')->name('storeMemberMainData');
     });
     Route::controller(AssociationsCommittesController::class)->group(function () {
         Route::get('assossiation_committees', 'index')->name('assossiation');

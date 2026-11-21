@@ -11,6 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('banks')) {
+            return;
+        }
         Schema::table('banks', function (Blueprint $table) {
             $table->string('transaction_type')->after('proof_img')->nullable();
         });
@@ -21,6 +24,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasTable('banks')) {
+            return;
+        }
         Schema::table('banks', function (Blueprint $table) {
             $table->dropColumn('transaction_type');
         });

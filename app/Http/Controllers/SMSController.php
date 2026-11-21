@@ -15,7 +15,9 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel as ImportExcel;
 
 class SMSController extends Controller {
-    public function __construct(protected SMSService $sms, protected EgyptLinxSmsService $egylinx) {}
+    public function __construct(protected SMSService $sms, protected EgyptLinxSmsService $egylinx) {
+        $this->middleware('permission:الرسائل');
+    }
     public function index(){
         $sms = SMSMSGS::all();
         $totalAmount = PaymentTransaction::where('item','رسائل')->sum('amount');

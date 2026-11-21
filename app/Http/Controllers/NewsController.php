@@ -24,12 +24,14 @@ class NewsController extends Controller
             'title' => 'required|string',
             'description' => 'required|string',
             'category' => 'required|string',
-            'img' => 'image|max:2048|mimes:png,jpg,jpeg,webp',
+            'img' => self::IMAGE_RULE,
+            'thumbnail' => 'nullable|array',
+            'thumbnail.*' => self::IMAGE_RULE,
         ]);
         if ($request->hasFile('img')) {
             //! Single Image
             $imageFile = $request->file('img');
-            $imagename = time() . '.' . $imageFile->getClientOriginalExtension();
+            $imagename = time() . '.' . $imageFile->extension();
             $destinationPath = public_path('assets/images/news-imgs/');
             $imageFile->move($destinationPath, $imagename);
         }
@@ -69,7 +71,7 @@ class NewsController extends Controller
         $thumbfile = $request->file('thumbnail');
         if (is_array($thumbfile)) {
             foreach ($thumbfile as $value) {
-                $thumbname = uniqid() . '.' . $value->getClientOriginalExtension();
+                $thumbname = uniqid() . '.' . $value->extension();
                 $destinationPath = public_path('assets/images/news-imgs/news-thumbnails/');
                 $value->move($destinationPath, $thumbname);
                 NewsThumbnail::create([
@@ -120,6 +122,11 @@ class NewsController extends Controller
     }
     public function updateNews(Request $request)
     {
+        $request->validate([
+            'img' => self::IMAGE_RULE,
+            'thumbnail' => 'nullable|array',
+            'thumbnail.*' => self::IMAGE_RULE,
+        ]);
         $id = $request->id;
         $news = News::find($id);
         if ($news) {
@@ -133,7 +140,7 @@ class NewsController extends Controller
             //! Insert New Image
             if ($request->hasFile('img')) {
                 $imageFile = $request->file('img');
-                $imagename = time() . '.' . $imageFile->getClientOriginalExtension();
+                $imagename = time() . '.' . $imageFile->extension();
                 $destinationPath = public_path('assets/images/news-imgs');
                 $imageFile->move($destinationPath, $imagename);
                 $news->img = $imagename;
@@ -142,7 +149,7 @@ class NewsController extends Controller
             if ($request->hasFile('thumbnail')) {
                 $images = $request->file('thumbnail');
                 foreach ($images as $img) {
-                    $imagename = uniqid() . '.' . $img->getClientOriginalExtension();
+                    $imagename = uniqid() . '.' . $img->extension();
                     $destinationPath = public_path('assets/images/news-imgs/news-thumbnails');
                     $img->move($destinationPath, $imagename);
                     NewsThumbnail::create([

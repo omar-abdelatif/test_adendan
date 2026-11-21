@@ -20,7 +20,7 @@ class MiscellaneousController extends Controller {
         $totalSafe = TotalSafe::where('id', 1)->first();
         if ($request->hasFile('invoice_img')) {
             $imageFile = $request->file('invoice_img');
-            $imagename = time() . '.' . $imageFile->getClientOriginalExtension();
+            $imagename = time() . '.' . $imageFile->extension();
             $destinationPath = public_path('assets/images/miscellaneous/');
             $imageFile->move($destinationPath, $imagename);
             $store = Miscellaneous::create([
@@ -72,6 +72,7 @@ class MiscellaneousController extends Controller {
         return redirect()->back()->withErrors('حدث خطأ');
     }
     public function updateMiscellaneous(Request $request) {
+        $request->validate(['invoice_img' => self::IMAGE_RULE]);
         $id = $request->id;
         $misc = Miscellaneous::find($id);
         if ($misc) {
@@ -85,7 +86,7 @@ class MiscellaneousController extends Controller {
             //! Insert New Image
             if ($request->hasFile('invoice_img')) {
                 $imageFile = $request->file('invoice_img');
-                $imagename = time() . '.' . $imageFile->getClientOriginalExtension();
+                $imagename = time() . '.' . $imageFile->extension();
                 $destinationPath = public_path('assets/images/miscellaneous');
                 $imageFile->move($destinationPath, $imagename);
                 $misc->invoice_img = $imagename;

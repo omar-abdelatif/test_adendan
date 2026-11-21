@@ -37,7 +37,7 @@ class UserController extends Controller {
             //! Upload New Image
             if ($request->file('avatar') && $request->file('avatar')->isValid()) {
                 $upload = $request->file('avatar');
-                $imageName = time() . '.' . $upload->getClientOriginalExtension();
+                $imageName = time() . '.' . $upload->extension();
                 $destinationPath = 'assets/images/users/';
                 $upload->move($destinationPath, $imageName);
                 $user->avatar = $imageName;

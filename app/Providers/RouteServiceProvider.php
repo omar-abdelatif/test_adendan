@@ -44,5 +44,18 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+
+        // Public endpoints that look up or store personal data (national ID search, OCR, comments).
+        RateLimiter::for('public-lookup', function (Request $request) {
+            return Limit::perMinute(10)->by($request->ip());
+        });
+
+        // Mobile app login: slows down password guessing per national ID and per IP.
+        RateLimiter::for('member-login', function (Request $request) {
+            return [
+                Limit::perMinute(5)->by('ssn:' . $request->input('ssn')),
+                Limit::perMinute(20)->by('ip:' . $request->ip()),
+            ];
+        });
     }
 }

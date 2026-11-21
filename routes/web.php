@@ -28,7 +28,7 @@ use App\Http\Controllers\SubscriberDataController;
 use App\Http\Controllers\PaymentTransactionController;
 use App\Http\Controllers\AssociationCommittesController;
 
-Auth::routes();
+Auth::routes(['register' => false]);
 
 Route::view('login', 'auth.login');
 Route::prefix('admin')->middleware('auth')->group(function () {

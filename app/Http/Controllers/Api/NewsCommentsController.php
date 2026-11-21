@@ -20,6 +20,8 @@ class NewsCommentsController extends Controller {
             'author' => $validatedData['author'],
             'content' => $validatedData['content'],
             'news_id' => $newsId,
+            // Comments stay open to guests; a logged-in member becomes the comment's owner.
+            'subscriber_id' => auth('sanctum')->id(),
         ]);
         return response()->json([
             'message' => 'Comment added successfully',
@@ -28,16 +30,23 @@ class NewsCommentsController extends Controller {
     }
     public function update(Request $request, int $newsId, int $commentId) {
         $comment = NewsComments::where('id', $commentId)->where('news_id', $newsId)->firstOrFail();
+        if (!$comment->isOwnedBy($request->user())) {
+            return response()->json(['message' => 'غير مسموح لك بتعديل هذا التعليق'], 403);
+        }
+        $validatedData = $request->validate(['content' => 'required|string']);
         $comment->update([
-            'content' => $request->content
+            'content' => $validatedData['content']
         ]);
         return response()->json([
             'message' => 'تم التعديل بنجاح',
             'data' => $comment->fresh()
         ]);
     }
-    public function destroy(int $newsId, int $commentId) {
+    public function destroy(Request $request, int $newsId, int $commentId) {
         $comment = NewsComments::where('id', $commentId)->where('news_id', $newsId)->firstOrFail();
+        if (!$comment->isOwnedBy($request->user())) {
+            return response()->json(['message' => 'غير مسموح لك بحذف هذا التعليق'], 403);
+        }
         $deletedComment = $comment->replicate();
         $comment->delete();
         return response()->json([

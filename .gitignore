@@ -2,7 +2,8 @@
 /public/hot
 /public/storage
 /public/firebase
-public/assets/images
+public/assets/images/*
+!public/assets/images/.htaccess
 .history
 /storage/*.key
 /vendor

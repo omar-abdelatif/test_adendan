@@ -37,9 +37,13 @@ class SubscribersController extends Controller
         $validatedData = $request->validate([
             'ssn' => 'required|digits:14',
             'mobile_no' => 'required|regex:/^01[0-9]{9}$/',
+            'img' => self::IMAGE_RULE,
+            'id_img' => self::IMAGE_RULE,
         ], [], [
             'ssn' => 'الرقم القومي',
             'mobile_no' => 'رقم الهاتف',
+            'img' => 'الصورة الشخصية',
+            'id_img' => 'صورة البطاقة',
         ]);
         $slug = Str::slug($request->name, '-');
         $value = $this->getSubscriptionValue();
@@ -48,17 +52,16 @@ class SubscribersController extends Controller
         $halfDelay = $this->insertHalfDelay();
         $currentSubCost = ($cost / 12) * $halfDelay;
         $totalNewSubCost = $currentSubCost + 50;
-        if ($request->hasFile('id_img') || $request->hasFile('img')) {
-            //! ID Image
-            $filename = $request->file('id_img');
-            $idImg = time() . '.' . $filename->getClientOriginalExtension();
-            $destinationPath = public_path('assets/images/subscribers/id/');
-            $filename->move($destinationPath, $idImg);
-            //! Personal Image
-            $filename = $request->file('img');
-            $pImg = time() . '.' . $filename->getClientOriginalExtension();
-            $destinationPath = public_path('assets/images/subscribers/avatar/');
-            $filename->move($destinationPath, $pImg);
+        // Each image is optional on its own; hashName() gives a random name with the real extension.
+        if ($request->hasFile('id_img')) {
+            $file = $request->file('id_img');
+            $idImg = $file->hashName();
+            $file->move(public_path('assets/images/subscribers/id/'), $idImg);
+        }
+        if ($request->hasFile('img')) {
+            $file = $request->file('img');
+            $pImg = $file->hashName();
+            $file->move(public_path('assets/images/subscribers/avatar/'), $pImg);
         }
         $totalSafe = TotalSafe::first();
         //! Insert The Subscriber
@@ -156,7 +159,7 @@ class SubscribersController extends Controller
             //! Upload Personal Image
             if ($request->hasFile('img')) {
                 $filename = $request->file('img');
-                $pImg = time() . '.' . $filename->getClientOriginalExtension();
+                $pImg = time() . '.' . $filename->extension();
                 $destinationPath = public_path('assets/images/subscribers/avatar/');
                 $filename->move($destinationPath, $pImg);
                 $member->img = $pImg;
@@ -164,7 +167,7 @@ class SubscribersController extends Controller
             //! Update ID Image
             if ($request->hasFile('id_img')) {
                 $filename = $request->file('id_img');
-                $idImg = time() . '.' . $filename->getClientOriginalExtension();
+                $idImg = time() . '.' . $filename->extension();
                 $destinationPath = public_path('assets/images/subscribers/id/');
                 $filename->move($destinationPath, $idImg);
                 $member->id_img = $idImg;

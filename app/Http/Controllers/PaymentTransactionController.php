@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PaymentTransactionController extends Controller {
+    public function __construct() {
+        $this->middleware('permission:المشتركين');
+    }
     public function import(Request $request) {
         $request->validate([
             'import-transactions' => 'required|mimes:xlsx,xls',

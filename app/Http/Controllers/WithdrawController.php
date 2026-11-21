@@ -32,7 +32,7 @@ class WithdrawController extends Controller {
             }
             if ($request->hasFile('proof_img')) {
                 $imagefile = $request->file('proof_img');
-                $imagename = time() . '.' . $imagefile->getClientOriginalExtension();
+                $imagename = time() . '.' . $imagefile->extension();
                 $destinationPath = public_path('assets/images/withdraws');
                 $imagefile->move($destinationPath, $imagename);
                 $store = paymentTransaction(0, $validated['amount'], new \DateTime($request->transaction_date), 'كاش', 'خزنة/سحب', 'تحويلات', 'سحب', $imagename, '');

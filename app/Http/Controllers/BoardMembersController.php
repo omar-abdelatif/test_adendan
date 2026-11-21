@@ -17,13 +17,13 @@ class BoardMembersController extends Controller
         $members = BoardMembers::all();
         return view('pages.board_members', compact('members'));
     }
-    public function storeMember(Request $request)
+    public function storeMember(BoardMembersRequest $request)
     {
         $validated = $request->validated();
         if ($validated) {
             if ($request->hasFile('img')) {
                 $imagefile = $request->file('img');
-                $imagename = time() . '.' . $imagefile->getClientOriginalExtension();
+                $imagename = time() . '.' . $imagefile->extension();
                 $destinationPath = public_path('assets/images/border-photos');
                 $imagefile->move($destinationPath, $imagename);
             }
@@ -69,7 +69,7 @@ class BoardMembersController extends Controller
         }
         return redirect()->back()->withErrors('خطأ أثناء الحذف');
     }
-    public function updateMember(Request $request)
+    public function updateMember(BoardMembersRequest $request)
     {
         $validated = $request->validated();
         if ($validated) {
@@ -86,7 +86,7 @@ class BoardMembersController extends Controller
                 //! Insert New Image
                 if ($request->hasFile('img')) {
                     $imagefile = $request->file('img');
-                    $imagename = time() . '.' . $imagefile->getClientOriginalExtension();
+                    $imagename = time() . '.' . $imagefile->extension();
                     $destinationPath = public_path('assets/images/border-photos');
                     $imagefile->move($destinationPath, $imagename);
                     $border->img = $imagename;
