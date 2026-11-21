@@ -1,10 +1,11 @@
 <?php
+
 return [
     'required' => 'هذا :attribute مطلوب.',
     'max' => [
         'numeric' => 'يجب ألا يزيد :attribute عن :max.',
         'integer' => 'يجب ألا يزيد :attribute عن :max.',
-        'string' => 'يجب أن يكون :attribute أقل من أو يساوي :max أحرف.'
+        'string' => 'يجب أن يكون :attribute أقل من أو يساوي :max أحرف.',
     ],
     'unique' => 'لقد تم بالفعل أخذ :attribute.',
     'numeric' => 'يجب ان تكون :attribute رقماً',

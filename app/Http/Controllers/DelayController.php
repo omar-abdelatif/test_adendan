@@ -16,7 +16,8 @@ class DelayController extends Controller
     }
 
     public function uploadDelays(Request $request)  // ! Upload Yearly Delays on Subscribers
-    {$request->validate([
+    {
+        $request->validate([
             'item' => 'required',
             'amount' => 'required',
         ]);
@@ -44,7 +45,8 @@ class DelayController extends Controller
     }
 
     public function paySubscription(Request $request) // ! Pay Single Subscription Delay For Single Subscriber
-    {$request->validate([
+    {
+        $request->validate([
             'amount_paid' => 'required|numeric|min:0',
             'inv_no' => 'required|numeric|unique:payment_transactions,inv_no',
             'payment_method' => 'required|string',

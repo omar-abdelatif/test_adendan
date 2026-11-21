@@ -1,5 +1,5 @@
 <?php
-    return [
-        'Dashboard' => 'لوحة القيادة',
-    ];
-?>
+
+return [
+    'Dashboard' => 'لوحة القيادة',
+];

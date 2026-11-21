@@ -99,7 +99,31 @@ class PublicEndpointsTest extends TestCase
         $this->assertDatabaseMissing('news_comments', ['id' => $commentId]);
     }
 
-    /** Inserted directly: the table's text column is `comment` while the code writes `content` (open question). */
+    public function test_a_member_can_edit_their_own_comment(): void
+    {
+        $owner = $this->member(15, 29001011234567);
+        $commentId = $this->comment(ownerId: $owner->id);
+
+        Sanctum::actingAs($owner);
+        $this->putJson("/api/news/1/comments/{$commentId}", ['content' => 'بعد التعديل'])->assertOk();
+
+        $this->assertDatabaseHas('news_comments', ['id' => $commentId, 'content' => 'بعد التعديل']);
+    }
+
+    public function test_logged_in_member_becomes_owner_of_new_comment(): void
+    {
+        $member = $this->member(15, 29001011234567);
+        $this->comment(ownerId: null);
+
+        // A real bearer token, as the mobile app sends it on this public route.
+        $token = $member->createToken('test')->plainTextToken;
+        $this->withToken($token)
+            ->postJson('/api/news/1/comments', ['author' => 'عضو', 'content' => 'تعليق جديد'])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('news_comments', ['content' => 'تعليق جديد', 'subscriber_id' => $member->id]);
+    }
+
     private function comment(?int $ownerId): int
     {
         if (! News::find(1)) {
@@ -107,7 +131,7 @@ class PublicEndpointsTest extends TestCase
         }
 
         return DB::table('news_comments')->insertGetId([
-            'author' => 'عضو', 'comment' => 'تعليق', 'news_id' => 1, 'subscriber_id' => $ownerId,
+            'author' => 'عضو', 'content' => 'تعليق', 'news_id' => 1, 'subscriber_id' => $ownerId,
             'created_at' => now(), 'updated_at' => now(),
         ]);
     }

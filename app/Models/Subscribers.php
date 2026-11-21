@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Activitylog\LogOptions;
@@ -9,7 +10,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 
 class Subscribers extends Authenticatable
 {
-    use HasApiTokens, LogsActivity;
+    use HasApiTokens, HasFactory, LogsActivity;
 
     protected $table = 'subscribers';
 

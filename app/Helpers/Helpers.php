@@ -52,14 +52,14 @@ if (! function_exists('handleTransfer')) {
     {
         try {
             DB::transaction(function () use ($validated, $imagename, $date, $fromCat, $toCat, $fromTotal, $toTotal) {
-                paymentTransaction(0, $validated['amount'], new \DateTime($date), 'كاش', $fromCat, 'تحويلات', 'سحب', 'تحويلات', $imagename, null, 'paid', 'تحويلات');
-                paymentTransaction(0, $validated['amount'], new \DateTime($date), 'كاش', $toCat, 'تحويلات', 'ايداع', 'تحويلات', $imagename, null, 'paid', 'تحويلات');
+                paymentTransaction(0, $validated['amount'], new DateTime($date), 'كاش', $fromCat, 'تحويلات', 'سحب', 'تحويلات', $imagename, null, 'paid', 'تحويلات');
+                paymentTransaction(0, $validated['amount'], new DateTime($date), 'كاش', $toCat, 'تحويلات', 'ايداع', 'تحويلات', $imagename, null, 'paid', 'تحويلات');
                 $fromTotal->decrement('amount', $validated['amount']);
                 $toTotal->increment('amount', $validated['amount']);
             });
 
             return true;
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
     }

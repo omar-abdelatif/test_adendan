@@ -83,7 +83,8 @@ class DonationsController extends Controller
     }
 
     public function donationsOnSubscribers(Request $request) // ! تبرعات على الأعضاء
-    {$request->validate([
+    {
+        $request->validate([
             'donation_type' => 'required',
             'delay_amount' => 'required',
         ]);

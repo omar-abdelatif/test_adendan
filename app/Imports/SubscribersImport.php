@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 class SubscribersImport implements ToCollection, WithBatchInserts, WithHeadingRow
 {
@@ -17,7 +18,7 @@ class SubscribersImport implements ToCollection, WithBatchInserts, WithHeadingRo
             $birthdate = null;
             if (! empty($row['birthdate'])) {
                 if (is_numeric($row['birthdate'])) {
-                    $birthdate = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row['birthdate'])->format('Y-m-d');
+                    $birthdate = Date::excelToDateTimeObject($row['birthdate'])->format('Y-m-d');
                 } else {
                     $birthdate = date('Y-m-d', strtotime($row['birthdate']));
                 }

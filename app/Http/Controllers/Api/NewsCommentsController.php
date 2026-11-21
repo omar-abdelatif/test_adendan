@@ -26,7 +26,8 @@ class NewsCommentsController extends Controller
             'content' => $validatedData['content'],
             'news_id' => $newsId,
             // Comments stay open to guests; a logged-in member becomes the comment's owner.
-            'subscriber_id' => auth('sanctum')->id(),
+            // user()->id, not id(): Subscribers uses `ssn` as its auth identifier.
+            'subscriber_id' => auth('sanctum')->user()?->id,
         ]);
 
         return response()->json([

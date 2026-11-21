@@ -7,6 +7,7 @@ use App\Models\SearchedData;
 use App\Models\Subscribers;
 use App\Models\Tombs;
 use App\Models\Wedding;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class SearchController extends Controller
@@ -38,16 +39,16 @@ class SearchController extends Controller
         $months = include base_path('lang/ar/months.php');
         $weddings = Wedding::whereDate('date', '>=', now())->get();
         $weddingsByMonth = $weddings->groupBy(function ($wedding) use ($months) {
-            $englishMonth = \Carbon\Carbon::parse($wedding->date)->format('F');
+            $englishMonth = Carbon::parse($wedding->date)->format('F');
             $arabicMonth = $months[$englishMonth]['name'];
-            $year = \Carbon\Carbon::parse($wedding->date)->format('Y');
+            $year = Carbon::parse($wedding->date)->format('Y');
 
             return $arabicMonth.' '.$year;
         });
         $sortedMonths = $weddingsByMonth->sortBy(function ($weds, $monthName) {
             $firstDate = $weds->first()->date;
 
-            return \Carbon\Carbon::parse($firstDate)->timestamp;
+            return Carbon::parse($firstDate)->timestamp;
         });
 
         return $sortedMonths;
