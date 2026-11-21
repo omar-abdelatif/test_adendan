@@ -24,7 +24,7 @@ Route::prefix('users')->group(function () {
         Route::get('users/all', 'index')->name('user.index');
         Route::post('user/store', 'store')->name('user.store');
         Route::post('user/update', 'update')->name('newuser.update');
-        Route::get('user/delete/{user}', 'destroy')->name('user.delete');
+        Route::delete('user/delete/{user}', 'destroy')->name('user.delete');
     });
 });
 
@@ -32,12 +32,12 @@ Route::prefix('roles')->name('roles.')->controller(RolesController::class)->grou
     Route::get('roles', 'index')->name('index');
     Route::post('store', 'store')->name('store');
     Route::post('update', 'update')->name('update');
-    Route::get('delete/{role}', 'destroy')->name('destroy');
+    Route::delete('delete/{role}', 'destroy')->name('destroy');
 });
 
 Route::prefix('permissions')->name('permissions.')->controller(PermissionsController::class)->group(function () {
     Route::get('permissions', 'index')->name('index');
     Route::post('store', 'store')->name('store');
     Route::post('update', 'update')->name('update');
-    Route::get('delete/{permission}', 'destroy')->name('destroy');
+    Route::delete('delete/{permission}', 'destroy')->name('destroy');
 });

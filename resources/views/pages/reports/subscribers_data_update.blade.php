@@ -93,9 +93,13 @@
                                                     <i class="fa-solid fa-check fs-5"></i>
                                                 </button>
                                             </form>
-                                            <a href="{{route('search.ocr.delete', $item->id)}}" class="btn btn-outline-danger d-flex align-items-center justify-content-center p-2">
-                                                <span data-feather="trash" class="m-0 p-0"></span>
-                                            </a>
+                                            <form action="{{route('search.ocr.delete', $item->id)}}" method="post" class="d-inline" onsubmit="return confirm('حذف بيانات البطاقة؟')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-outline-danger d-flex align-items-center justify-content-center p-2">
+                                                    <span data-feather="trash" class="m-0 p-0"></span>
+                                                </button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @endforeach

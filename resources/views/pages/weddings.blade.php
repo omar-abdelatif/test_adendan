@@ -158,8 +158,9 @@
                                                                 <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">جار حذف اللجنة {{$wedding->name}}</h1>
                                                             </div>
                                                             <div class="modal-body">
-                                                                <form action={{route('wedding.delete', $wedding->id)}} method="get">
+                                                                <form action={{route('wedding.delete', $wedding->id)}} method="post">
                                                                     @csrf
+                                                                    @method('DELETE')
                                                                     <div class="form-title text-center">
                                                                         <h3 class="text-muted my-2">هل أنت متأكد من الحذف</h3>
                                                                     </div>

@@ -128,8 +128,9 @@
                                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                                 </div>
                                                                 <div class="modal-body">
-                                                                    <form action="{{ route('roles.destroy', $role->id) }}" method="get">
+                                                                    <form action="{{ route('roles.destroy', $role->id) }}" method="post">
                                                                         @csrf
+                                                                        @method('DELETE')
                                                                         <div class="form-group">
                                                                             <h1 class="text-center">هل انت متأكد ؟</h1>
                                                                         </div>

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Security;
 
+use App\Models\Tombs;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -53,6 +54,19 @@ class AccessControlTest extends TestCase
         $this->actingAs($this->staff())
             ->post('/admin/searched_data/approve', ['member_id' => 1, 'ssn' => '29001011234567'])
             ->assertForbidden();
+    }
+
+    public function test_deleting_needs_a_delete_request_not_a_link(): void
+    {
+        $this->actingAs($this->staff(['المقابر']));
+        $tomb = Tombs::create(['title' => 'مقبرة', 'tomb_type' => 'عائلية', 'tomb_specialization' => 'رجال', 'region' => 'أدندان']);
+
+        // A GET (a link or an <img src>) can no longer delete anything.
+        $this->get("/admin/tomb/tombs/delete/{$tomb->id}")->assertStatus(405);
+        $this->assertNotNull($tomb->fresh());
+
+        $this->delete("/admin/tomb/tombs/delete/{$tomb->id}")->assertSessionHas('alert-type', 'success');
+        $this->assertNull($tomb->fresh());
     }
 
     public function test_guests_are_sent_to_login(): void

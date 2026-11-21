@@ -40,14 +40,14 @@ Route::controller(CostYearsController::class)->group(function () {
     Route::get('costyears/costyears/all', 'index')->name('costyears.all');
     Route::post('costyears/costyears/store', 'store')->name('costyears.store');
     Route::post('costyears/costyears/update', 'update')->name('costyears.update');
-    Route::get('costyears/costyears/delete/{year}', 'destroy')->name('costyears.remove');
+    Route::delete('costyears/costyears/delete/{year}', 'destroy')->name('costyears.remove');
 });
 
 Route::controller(ExpensesController::class)->group(function () {
     Route::get('miscellaneous/miscellaneous/all', 'index')->name('miscellaneous.all');
     Route::post('miscellaneous/miscellaneous/store', 'store')->name('miscellaneous.store');
     Route::post('miscellaneous/miscellaneous/update', 'update')->name('miscellaneous.update');
-    Route::get('miscellaneous/miscellaneous/delete/{expense}', 'destroy')->name('miscellaneous.delete');
+    Route::delete('miscellaneous/miscellaneous/delete/{expense}', 'destroy')->name('miscellaneous.delete');
 });
 
 Route::controller(TransfersController::class)->group(function () {
@@ -70,5 +70,5 @@ Route::prefix('donators')->controller(DonorsController::class)->group(function (
     Route::get('donators/all', 'index')->name('donators.all');
     Route::post('donators/store', 'store')->name('donators.store');
     Route::post('donators/update', 'update')->name('donators.update');
-    Route::get('donators/remove/{donor}', 'destroy')->name('donators.remove');
+    Route::delete('donators/remove/{donor}', 'destroy')->name('donators.remove');
 });

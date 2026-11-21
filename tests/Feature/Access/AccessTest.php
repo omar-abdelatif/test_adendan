@@ -55,8 +55,8 @@ class AccessTest extends TestCase
         $builtIn = Permission::findOrCreate('التقارير', 'web');
         $master = Role::findOrCreate('master', 'web');
 
-        $this->get("/admin/permissions/delete/{$builtIn->id}")->assertSessionHas('alert-type', 'error');
-        $this->get("/admin/roles/delete/{$master->id}")->assertSessionHas('alert-type', 'error');
+        $this->delete("/admin/permissions/delete/{$builtIn->id}")->assertSessionHas('alert-type', 'error');
+        $this->delete("/admin/roles/delete/{$master->id}")->assertSessionHas('alert-type', 'error');
 
         $this->assertNotNull($builtIn->fresh());
         $this->assertNotNull($master->fresh());
@@ -66,7 +66,7 @@ class AccessTest extends TestCase
     {
         $user = $this->actingAsStaff('المستخدمين');
 
-        $this->get("/admin/users/user/delete/{$user->id}")->assertSessionHas('alert-type', 'error');
+        $this->delete("/admin/users/user/delete/{$user->id}")->assertSessionHas('alert-type', 'error');
 
         $this->assertNotNull($user->fresh());
     }

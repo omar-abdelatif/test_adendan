@@ -16,7 +16,7 @@ Route::prefix('subscribers')->controller(MembersController::class)->group(functi
     Route::post('store', 'store')->name('subscribe.store');
     Route::get('update/{subscriber}', 'edit')->name('subscriber.details');
     Route::post('update', 'update')->name('subscribe.update');
-    Route::get('delete/{subscriber}', 'destroy')->name('subscribe.destroy');
+    Route::delete('delete/{subscriber}', 'destroy')->name('subscribe.destroy');
     Route::post('bulk_upload', 'import')->name('subscriber.bulk');
     Route::get('get-year-cost/{year}', 'yearCost')->name('get.year.cost');
     Route::post('generate-passwords', 'issuePasswords')->name('generate-passwords');
@@ -34,8 +34,8 @@ Route::prefix('reports')->controller(MemberReportsController::class)->group(func
 Route::controller(ProfileChangesController::class)->group(function () {
     Route::post('reports/subscribers_data_ocr/approve/{scan}', 'approveOcr')->name('reports.search.approve');
     Route::post('searched_data/approve', 'approveWebsite')->name('search.approve');
-    Route::get('searched_data/delete/{request}', 'deleteWebsite')->name('search.delete');
-    Route::get('searched_data/delete_ocr/{scan}', 'deleteOcr')->name('search.ocr.delete');
+    Route::delete('searched_data/delete/{request}', 'deleteWebsite')->name('search.delete');
+    Route::delete('searched_data/delete_ocr/{scan}', 'deleteOcr')->name('search.ocr.delete');
     Route::get('users/update_requests', 'appRequests')->name('reports.updateRequests');
     Route::post('users/update_request', 'approveApp')->name('user.updateRequest');
     Route::delete('users/decline_update_request/{staging}', 'declineApp')->name('user.declineUpdateRequest');

@@ -91,7 +91,7 @@ class MembersTest extends TestCase
         $member = Subscribers::factory()->create();
         PaymentTransaction::factory()->create(['member_id' => $member->member_id]);
 
-        $this->get("/admin/subscribers/delete/{$member->id}")->assertSessionHas('alert-type', 'error');
+        $this->delete("/admin/subscribers/delete/{$member->id}")->assertSessionHas('alert-type', 'error');
 
         $this->assertNotNull($member->fresh());
         $this->assertSame(1, PaymentTransaction::count());
@@ -103,7 +103,7 @@ class MembersTest extends TestCase
         $member = Subscribers::factory()->create();
         Due::factory()->forMember($member)->create();
 
-        $this->get("/admin/subscribers/delete/{$member->id}")->assertSessionHas('alert-type', 'success');
+        $this->delete("/admin/subscribers/delete/{$member->id}")->assertSessionHas('alert-type', 'success');
 
         $this->assertNull($member->fresh());
         $this->assertSame(0, Due::count());

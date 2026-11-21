@@ -170,8 +170,9 @@
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <form action={{route('news.destroy', $new->id)}} method="get">
+                                                    <form action={{route('news.destroy', $new->id)}} method="post">
                                                         @csrf
+                                                        @method('DELETE')
                                                         <div class="form-title text-center">
                                                             <h3 class="text-white my-2">هل أنت متأكد من الحذف</h3>
                                                         </div>

@@ -48,7 +48,8 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Minutes until a mobile app token expires; null = never (the app has no refresh flow yet).
+    'expiration' => env('SANCTUM_EXPIRATION') ? (int) env('SANCTUM_EXPIRATION') : null,
 
     /*
     |--------------------------------------------------------------------------

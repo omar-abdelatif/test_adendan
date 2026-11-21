@@ -175,7 +175,7 @@ class OfficeFinanceTest extends TestCase
             ->assertSessionHasNoErrors();
         $this->assertSame(850, $this->safe());
 
-        $this->get("/admin/miscellaneous/miscellaneous/delete/{$expense->id}")->assertSessionHasNoErrors();
+        $this->delete("/admin/miscellaneous/miscellaneous/delete/{$expense->id}")->assertSessionHasNoErrors();
         $this->assertSame(1000, $this->safe());
         $this->assertSame(3, PaymentTransaction::count());
     }
