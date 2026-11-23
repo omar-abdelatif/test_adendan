@@ -1,199 +1,73 @@
+@php
+    $kinds = ['تبرع تنمية' => $donationDevSum, 'تبرع إنتساب' => $donationAffiliateSum, 'مقابر قديمة' => $donationTombsSum, 'ص.مقر' => $donationHeadquartersSum, 'ص.سيارة' => $donationDeathCarSum];
+    $total = $donations->sum('amount');
+    $max = max(1, ...array_values($kinds));
+    $label = fn ($d) => $d->donation_type === 'أخرى' ? ($d->other_donation ?: 'أخرى') : ($d->donation_category ?: $d->donation_type);
+@endphp
 @extends('layouts.master')
-@section('title', 'تقارير التبرعات')
-@section('breadcrumb-title')
-    <h3>تقارير التبرعات</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">التقارير</li>
-    <li class="breadcrumb-item active">تقارير التبرعات</li>
-@endsection
-@section('css')
-    <style>
-        .text-tight{
-            text-align: right !important
-        }
-        .text-left{
-            text-align: left !important
-        }
-        .pe-6 {
-            padding-left: 3rem !important;
-        }
-    </style>
-@endsection
-@section('script')
-    <script>
-        $(function(){
-            let table = $("#inner_donations").DataTable();
-            let totalAmount = 0;
-            table.rows().every(function () {
-                let row = this.data();
-                let amount = parseFloat(row[6].replace(",", ""));
-                if (!isNaN(amount)) {
-                    totalAmount += amount;
-                }
-            });
-            $("#totalAmount").text(totalAmount.toFixed(2));
-        })
-    </script>
-@endsection
+@section('title', 'التبرعات الداخلية')
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <h3 class="light-card balance-card widget-hover w-50 mx-auto justify-content-center rounded-pill bg-primary mb-4">
-                    <i class="fas fa-dollar-sign" style="font-size:30px;"></i>
-                    تـقرير التبرعات
-                </h3>
-            </div>
-            <div class="col-xl-4 box-col-12">
-                <div class="card widget-1 ">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="65" height="65" src="https://img.icons8.com/external-hidoc-kerismaker/65/external-Headstone-funeral-hidoc-kerismaker.png" alt="external-Headstone-funeral-hidoc-kerismaker" />
-                            </div>
-                            <h5 class="mb-0 text-muted">المقابر القديمة</h5>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted">{{$donationTombsSum}} ج.م</h5>
-                        </div>
+    <x-nb.page title="التبرعات الداخلية" subtitle="تبرعات الأعضاء حسب البند، والمستحقات اللي لسه ما اتدفعتش" :crumbs="['التقارير']">
+        <x-slot:actions>
+            <x-nb.button variant="ghost" icon="printer" onclick="window.print()">طباعة</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            <x-nb.stat label="كل التبرعات الداخلية" :value="number_format($total)" unit="ج.م" icon="heart" main :note="number_format($donations->count()).' تبرع'" />
+            <x-nb.stat label="تبرع تنمية" :value="number_format($donationDevSum)" unit="ج.م" icon="trending-up" tone="green" />
+            <x-nb.stat label="ص.مقر" :value="number_format($donationHeadquartersSum)" unit="ج.م" icon="home" tone="gold" />
+            <x-nb.stat label="مستحقات تبرعات لسه" :value="number_format($sumTotalDuesDonations)" unit="ج.م" icon="alert-circle" tone="terra" />
+        </x-nb.stats>
+
+        <div class="nb-split">
+            <x-nb.card title="كل التبرعات" icon="list" flush>
+                <x-slot:actions>
+                    <div class="nb-chips">
+                        <a href="#" class="nb-chip is-on" data-nb-filter="#inner-table" data-col="3" data-value="">الكل</a>
+                        @foreach (array_keys($kinds) as $kind)
+                            <a href="#" class="nb-chip" data-nb-filter="#inner-table" data-col="3" data-value="{{ $kind }}">{{ $kind }}</a>
+                        @endforeach
                     </div>
+                </x-slot:actions>
+                <x-nb.table id="inner-table" :order="[[0, 'desc']]" :page-length="25">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>العضو</th>
+                            <th>رقم العضوية</th>
+                            <th>البند</th>
+                            <th>رقم الإيصال</th>
+                            <th class="is-end">المبلغ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($donations as $donation)
+                            <tr>
+                                <td class="nb-num nb-nowrap">{{ $donation->payment_date ?? $donation->created_at?->format('Y-m-d') }}</td>
+                                <td class="nb-strong">{{ $donation->subscribers?->name ?? '—' }}</td>
+                                <td class="nb-num">{{ $donation->member_id }}</td>
+                                <td><x-nb.badge tone="gold">{{ $label($donation) }}</x-nb.badge></td>
+                                <td class="nb-num">{{ $donation->invoice_no ?? '—' }}</td>
+                                <td class="is-end nb-in" data-order="{{ $donation->amount }}">{{ number_format($donation->amount) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </x-nb.table>
+            </x-nb.card>
+
+            <x-nb.card title="حسب البند" icon="pie-chart" tone="gold">
+                <div class="nb-bars">
+                    @foreach ($kinds as $kind => $sum)
+                        <div class="nb-bars__row">
+                            <span>{{ $kind }}</span>
+                            <span class="nb-bars__track"><span style="width: {{ round($sum / $max * 100) }}%"></span></span>
+                            <span class="nb-bars__value">{{ number_format($sum) }}</span>
+                        </div>
+                    @endforeach
                 </div>
-            </div>
-            <div class="col-xl-4 box-col-12">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="64" height="64" src="https://img.icons8.com/external-xnimrodx-lineal-color-xnimrodx/64/external-condo-city-scape-xnimrodx-lineal-color-xnimrodx.png" alt="external-condo-city-scape-xnimrodx-lineal-color-xnimrodx"/>
-                            </div>
-                            <h5 class="mb-0 text-muted">ص.مقر</h5>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted">{{$donationHeadquartersSum}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 box-col-12">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="70" height="70" src="https://img.icons8.com/external-konkapp-outline-color-konkapp/70/external-van-transportation-konkapp-outline-color-konkapp.png" alt="external-van-transportation-konkapp-outline-color-konkapp"/>
-                            </div>
-                            <h5 class="mb-0 text-muted">ص.سيارة</h5>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted">{{$donationDeathCarSum}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 box-col-12">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="64" height="64" src="https://img.icons8.com/dusk/64/donate.png" alt="donate"/>
-                            </div>
-                            <h5 class="mb-0 text-muted">تبرع تنمية</h5>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted">{{$donationDevSum}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 box-col-12">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="64" height="64" src="https://img.icons8.com/external-anggara-filled-outline-anggara-putra/64/external-loan-economy-anggara-filled-outline-anggara-putra.png" alt="external-loan-economy-anggara-filled-outline-anggara-putra" />
-                            </div>
-                            <h5 class="mb-0 text-muted">تبرع إنتساب</h5>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted">{{$donationAffiliateSum}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 box-col-12">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="64" height="64" src="https://img.icons8.com/fluency/64/community-grants.png" alt="community-grants"/>
-                            </div>
-                            <h5 class="mb-0 text-muted">مستحقات التبرعات</h5>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-0 text-muted">{{$sumTotalDuesDonations}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card card-absolute">
-                    <div class="card-header bg-primary rounded-pill">
-                        <h4 class="mb-0">التبرعات الداخلية</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table display align-middle text-muted table-hover" id="inner_donations" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">رقم العضوية</th>
-                                        <th class="text-center">اسم العضو</th>
-                                        <th class="text-center">رقم الإيصال</th>
-                                        <th class="text-center">نوع التبرع</th>
-                                        <th class="text-center">تبرعات أخرى</th>
-                                        <th class="text-center">جهة التبرع</th>
-                                        <th class="text-center">المبلغ</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($donations as $donation)
-                                        <tr>
-                                            <td class="text-center">{{$donation->member_id}}</td>
-                                            <td class="text-center">{{$donation->subscribers->name}}</td>
-                                            <td class="text-center">{{$donation->invoice_no}}</td>
-                                            <td class="text-center">{{$donation->donation_type}}</td>
-                                            <td class="text-center">
-                                                @if ($donation->donation_type === 'أخرى')
-                                                    {{$donation->other_donation}}
-                                                @else
-                                                    <span class="fw-bold">-</span>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                @if ($donation->donation_type == 'مادي')
-                                                    {{$donation->donation_category}}
-                                                @else
-                                                    <span class="fw-bold">-</span>
-                                                @endif
-                                            </td>
-                                            <td class="text-center">{{$donation->amount}}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td class="text-right" colspan="6">
-                                            <b>الإجمالي</b>
-                                        </td>
-                                        <td id="totalAmount" class="text-center"></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </x-nb.card>
         </div>
     </div>
 @endsection

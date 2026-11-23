@@ -4,6 +4,7 @@
 /public/firebase
 public/assets/images/*
 !public/assets/images/.htaccess
+!public/assets/images/nubian/
 .history
 /storage/*.key
 /vendor

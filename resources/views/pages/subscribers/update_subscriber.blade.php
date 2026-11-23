@@ -1,240 +1,135 @@
 @php
-    $user = Auth::user();
+    $m = $subscriber;
+    $avatar = $m->img ? asset('assets/images/subscribers/avatar/'.$m->img) : null;
+    $idCard = $m->id_img ? asset('assets/images/subscribers/id/'.$m->id_img) : null;
+    $dues = $m->dues()->where('amount_remaining', '>', 0)->orderBy('item')->get();
+    $owed = (int) $dues->sum('amount_remaining');
+    $payments = $m->paymentTransactions()->latest('payment_date')->limit(4)->get();
+    $mobile = $m->mobile_no ? '0'.ltrim((string) $m->mobile_no, '0') : null;
 @endphp
 @extends('layouts.master')
-@section('title', 'تعديل مشترك')
-@section('breadcrumb-title')
-    <h3>تعديل المشترك {{$subscriber->name}}</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item active">
-        <a href="{{route('subscriber.all')}}">كل المشتركين</a>
-    </li>
-    <li class="breadcrumb-item active">تعديل المشترك</li>
-@endsection
-@section('script')
-    <script src="{{ asset('assets/js/datepicker/date-picker/datepicker.js') }}"></script>
-    <script src="{{ asset('assets/js/datepicker/date-picker/datepicker.ar.js')}}"></script>
-    <script src="{{ asset('assets/js/custom-script.js')}}"></script>
-@endsection
+@section('title', $m->name)
 @section('content')
-    @if ($errors->any())
-        @foreach ($errors->all() as $error)
-            <div class="alert alert-danger mx-auto w-50 text-center" id="error">
-                <p class="mb-0">{{$error}}</p>
-            </div>
-        @endforeach
-    @endif
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="subscriber_update_form">
-                    <form action="{{route('subscribe.update')}}" method="post" enctype="multipart/form-data">
-                        @csrf
-                        <input type="hidden" name="id" value="{{$subscriber->id}}"/>
-                        <div id="updateForm py-3">
-                            <div class="card card-absolute mt-3">
-                                <div class="card-header bg-primary rounded-pill">
-                                    <h5 class="txt-light">البيانات الشخصية</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label class="form-label fw-bold text-white" for="email-basic-wizard">
-                                                    الأسم الكامل
-                                                </label>
-                                                <input class="form-control text-white" id="email-basic-wizard" type="text" value="{{$subscriber->name}}" name="name" placeholder="مثلا: محمد أحمد محمود">
-                                            </div>
-                                            <div class="form-group mt-3">
-                                                <label class="form-label fw-bold text-white" for="confirmpasswordwizard">
-                                                    تاريخ الميلاد
-                                                </label>
-                                                <input class="form-control text-white" name="birthdate" value="{{$subscriber->birthdate}}" id="confirmpasswordwizard" type="date" placeholder="تاريخ الميلاد">
-                                            </div>
-                                            <div class="form-group mt-3">
-                                                <label class="form-label fw-bold text-white" for="validatemobilenumber">
-                                                    رقم المحمول
-                                                </label>
-                                                <input class="form-control text-white" id="validatemobilenumber" value="{{$subscriber->mobile_no}}" name="mobile_no" type="number" placeholder="رقم المحمول">
-                                            </div>
-                                            <div class="form-group mt-3">
-                                                <label class="form-label fw-bold text-white" for="validatemobilenumber">
-                                                    رقم المحمول اخر
-                                                </label>
-                                                <input class="form-control text-white" value="{{$subscriber->another_mobile_no}}" name="another_mobile_no" type="number" placeholder="رقم المحمول اخر">
-                                            </div>
-                                            <div class="form-group mt-3">
-                                                <div class="id-img mb-3 text-center">
-                                                    <img src={{asset('assets/images/subscribers/id/'.$subscriber->id_img)}} width="120" data-member-id="{{ $subscriber->id }}" class="rounded img-fluid" id="idImage_{{ $subscriber->id }}" alt="{{$subscriber->img}}">
-                                                </div>
-                                                <label class="form-label fw-bold text-white" for="id_img">
-                                                    صورة البطاقة الشخصية
-                                                </label>
-                                                <input class="form-control text-white" value="{{$subscriber->id_img}}" name="id_img" data-member-id="{{ $subscriber->id }}" id="id_img" type="file" accept="image/*">
-                                            </div>
-                                            <div class="form-group mt-3">
-                                                <label class="form-label fw-bold text-white" for="firstnamewizard">
-                                                    الحالة الإجتماعية
-                                                </label>
-                                                <select name="martial_status" id="martial_status" class="form-select">
-                                                    <option selected disabled>الحالة الإجتماعية</option>
-                                                    <option value="أعزب" {{$subscriber->martial_status === 'أعزب' ? 'selected' : ''}}>أعزب</option>
-                                                    <option value="متزوج" {{$subscriber->martial_status === 'متزوج' ? 'selected' : ''}}>متزوج</option>
-                                                    <option value="أرمل" {{$subscriber->martial_status === 'أرمل' ? 'selected' : ''}}>أرمل</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label class="form-label fw-bold text-white" for="email-basic-wizard">
-                                                    اللقب و إسم الشهرة
-                                                </label>
-                                                <input class="form-control text-white" id="email-basic-wizard" type="text" name="nickname" value="{{$subscriber->nickname}}" placeholder="مثلا: محمد أحمد محمود">
-                                            </div>
-                                            <div class="form-group mt-3">
-                                                <label class="form-label fw-bold text-white" for="passwordwizard">
-                                                    العنوان
-                                                </label>
-                                                <input class="form-control text-white" name="address" id="passwordwizard" value="{{$subscriber->address}}" type="text" placeholder="عنوان المشترك">
-                                            </div>
-                                            <div class="form-group mt-3">
-                                                <div class="p-img mb-3 text-center">
-                                                    <img src={{asset('assets/images/subscribers/avatar/'.$subscriber->img)}} width="120" data-member-id="{{ $subscriber->id }}" class="rounded img-fluid" id="showImage_{{ $subscriber->id }}" alt="{{$subscriber->img}}">
-                                                </div>
-                                                <label class="form-label fw-bold text-white" for="image">
-                                                    الصورة الشخصية
-                                                </label>
-                                                <input class="form-control text-white" value="{{$subscriber->img}}" name="img" data-member-id="{{ $subscriber->id }}" id="image" type="file" accept="image/*">
-                                            </div>
-                                            <div class="form-group mt-3">
-                                                <label class="form-label fw-bold text-white" for="firstnamewizard">
-                                                    الرقم القومي
-                                                </label>
-                                                <input class="form-control text-white" id="firstnamewizard" value="{{$subscriber->ssn}}" name="ssn" type="number" placeholder="أدخل الرقم القومي">
-                                            </div>
-                                            <div class="form-group mt-3">
-                                                <label class="form-label fw-bold text-white" for="firstnamewizard">
-                                                    ت المنزل
-                                                </label>
-                                                <input class="form-control text-white" id="firstnamewizard" value="{{$subscriber->home_tel}}" name="home_tel" type="number" placeholder="ت المنزل">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card card-absolute mt-5">
-                                <div class="card-header bg-primary rounded-pill">
-                                    <h5 class="txt-light">البيانات الدراسية</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <label class="form-label fw-bold text-white" for="placeholdername1">المؤهل الدراسي</label>
-                                            <input class="form-control text-white" value="{{$subscriber->educational_qualification}}" id="placeholdername1" name="educational_qualification" type="text" placeholder="المؤهل الدراسي">
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <label class="form-label fw-bold text-white" for="cardNumber01">تاريخ المؤهل</label>
-                                            <input class="form-control text-white" value="{{$subscriber->qualification_date}}" name="qualification_date" id="cardNumber01" type="date" placeholder="تاريخ المؤهل">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card card-absolute mt-5">
-                                <div class="card-header bg-primary rounded-pill">
-                                    <h5 class="txt-light">البيانات الوظيفية</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <label class="form-label fw-bold text-white" for="email-basic">
-                                                الوظيفة
-                                            </label>
-                                            <input class="form-control text-white" value="{{$subscriber->job}}" name="job" id="email-basic" type="text" placeholder="الوظيفة">
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <label class="form-label fw-bold text-white" for="validationCustom996">
-                                                جهة العمل
-                                            </label>
-                                            <input class="form-control text-white" value="{{$subscriber->job_destination}}" name="job_destination" id="validationCustom996" type="text" placeholder="جهة العمل">
-                                        </div>
-                                        <div class="col-lg-6 mt-3">
-                                            <label class="form-label fw-bold text-white" for="validationCustom996">
-                                                عنوان العمل
-                                            </label>
-                                            <input class="form-control text-white" value="{{$subscriber->job_address}}" name="job_address" id="validationCustom996" type="text" placeholder="عنوان العمل">
-                                        </div>
-                                        <div class="col-lg-6 mt-3">
-                                            <label class="form-label fw-bold text-white" for="validationCustom996">
-                                                ت العمل
-                                            </label>
-                                            <input class="form-control text-white" value="{{$subscriber->job_tel}}" name="job_tel" id="validationCustom996" type="number" placeholder="ت العمل">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card card-absolute mt-5">
-                                <div class="card-header bg-primary rounded-pill">
-                                    <h5 class="txt-light">البيانات الإشتراك</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-lg-6 mt-3">
-                                            <label for="validationMembership" class="form-label fw-bold text-white">نوع العضوية</label>
-                                            <select name="membership_type" class="form-select text-white" id="validationMembership">
-                                                <option selected disabled>إختار نوع العضوية</option>
-                                                <option value="عامل" {{$subscriber->membership_type === 'عامل' ? 'selected' : ''}}>عامل</option>
-                                                <option value="إنتساب" {{$subscriber->membership_type === 'إنتساب' ? 'selected' : ''}}>إنتساب</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-lg-6 mt-3">
-                                            <label for="validationMemberId" class="form-label fw-bold text-white">رقم العضوية</label>
-                                            <input type="number" value="{{$subscriber->member_id}}" name="member_id" class="form-control text-white" placeholder="رقم العضوية" id="validationMemberId">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card card-absolute mt-5">
-                                <div class="card-header bg-primary rounded-pill">
-                                    <h5 class="txt-light">البيانات الصحية</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <input type="checkbox" class="checkbox_animated" name="status" id="deathOrNot" {{ $subscriber->status === 2 ? 'checked' : '' }}>
-                                                <label for="deathOrNot" class="text-center text-muted ms-2 mb-0">هل الشخص متوفي ؟</label>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="form-group d-none" id="deathStateContainer">
-                                                <label for="death_state" class="form-label text-secondary">اسم المقبره</label>
-                                                <select name="tomb_name" class="form-select text-secondary" id="death_state">
-                                                    <option selected disabled>اسم المقبره</option>
-                                                    @foreach($tombs as $tomb)
-                                                        <option value="{{ $tomb->title }}" {{ $subscriber->tomb_name === $tomb->title ? 'selected' : '' }}>
-                                                            {{ $tomb->title }}
-                                                        </option>
-                                                    @endforeach
-                                                    {{-- <option value="اكتوبر" {{$subscriber->tomb_name === 'اكتوبر' ? 'selected' : ''}}>اكتوبر</option>
-                                                    <option value="الفيوم" {{$subscriber->tomb_name === 'الفيوم' ? 'selected' : ''}}>الفيوم</option>
-                                                    <option value="القطامية" {{$subscriber->tomb_name === 'القطامية' ? 'selected' : ''}}>القطامية</option>
-                                                    <option value="الغفير" {{$subscriber->tomb_name === 'الغفير' ? 'selected' : ''}}>الغفير</option>
-                                                    <option value="مايو" {{$subscriber->tomb_name === 'مايو' ? 'selected' : ''}}>مايو</option>
-                                                    <option value="زينهم" {{$subscriber->tomb_name === 'زينهم' ? 'selected' : ''}}>زينهم</option>
-                                                    <option value="العين السخنة" {{$subscriber->tomb_name === 'العين السخنة' ? 'selected' : ''}}>العين السخنة</option> --}}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="form-footer">
-                                <button type="submit" class="btn btn-primary w-100 fw-bold mb-4">تأكيد</button>
-                            </div>
-                        </div>
-                    </form>
+    <x-nb.page :title="$m->name" subtitle="ملف العضو وتعديل البيانات" :crumbs="['كل المشتركين' => route('subscriber.all')]">
+        <x-slot:actions>
+            <x-nb.button variant="ghost" icon="arrow-right" :href="route('subscriber.all')">رجوع للمشتركين</x-nb.button>
+            <x-nb.button variant="gold" icon="credit-card" :href="route('subscription.history', $m->id)">الحساب والسداد</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-stack">
+        <section class="nb-card nb-member">
+            <x-nb.avatar :name="$m->name" :src="$avatar" size="lg" tone="teal" />
+            <div>
+                <div class="nb-member__name"><h1>{{ $m->name }}</h1><x-nb.member-status :status="$m->status" /></div>
+                <div class="nb-member__meta">
+                    <span><i data-feather="hash"></i>عضوية {{ $m->member_id }}</span>
+                    @if ($m->membership_type)<span><i data-feather="user-check"></i>{{ $m->membership_type }}</span>@endif
+                    @if ($mobile)<span dir="ltr"><i data-feather="phone"></i>{{ $mobile }}</span>@endif
+                    @if ($m->address)<span><i data-feather="map-pin"></i>{{ $m->address }}</span>@endif
+                    @if ($m->job)<span><i data-feather="briefcase"></i>{{ $m->job }}</span>@endif
                 </div>
+            </div>
+        </section>
+
+        <div class="nb-split">
+            <form action="{{ route('subscribe.update') }}" method="POST" enctype="multipart/form-data" class="nb-card">
+                @csrf
+                <input type="hidden" name="id" value="{{ $m->id }}">
+                <div class="nb-tabs" data-nb-tabs role="tablist">
+                    <button type="button" class="is-on" data-nb-tab="#tab-personal" role="tab" aria-selected="true"><i data-feather="user"></i>البيانات الشخصية</button>
+                    <button type="button" data-nb-tab="#tab-study" role="tab"><i data-feather="book"></i>الدراسية</button>
+                    <button type="button" data-nb-tab="#tab-work" role="tab"><i data-feather="briefcase"></i>الوظيفية</button>
+                    <button type="button" data-nb-tab="#tab-membership" role="tab"><i data-feather="credit-card"></i>الإشتراك</button>
+                    <button type="button" data-nb-tab="#tab-health" role="tab"><i data-feather="heart"></i>الحالة</button>
+                </div>
+                <div class="nb-card__body">
+                    <div id="tab-personal" class="nb-form-grid" style="--cols: 3" role="tabpanel">
+                        <x-nb.field label="الإسم الكامل" name="name" :value="$m->name" required span="2" />
+                        <x-nb.field label="اللقب واسم الشهرة" name="nickname" :value="$m->nickname" />
+                        <x-nb.field label="تاريخ الميلاد" name="birthdate" type="date" :value="$m->birthdate" />
+                        <x-nb.field label="الرقم القومي" name="ssn" inputmode="numeric" maxlength="14" dir="ltr" :value="$m->ssn" required />
+                        <x-nb.field label="الحالة الإجتماعية" name="martial_status" type="select" :options="['أعزب', 'متزوج', 'أرمل']" :value="$m->martial_status" />
+                        <x-nb.field label="رقم المحمول" name="mobile_no" type="tel" inputmode="numeric" dir="ltr" :value="$mobile" required />
+                        <x-nb.field label="رقم المحمول الاخر" name="another_mobile_no" type="tel" inputmode="numeric" dir="ltr" :value="$m->another_mobile_no" />
+                        <x-nb.field label="تليفون المنزل" name="home_tel" type="tel" dir="ltr" :value="$m->home_tel" />
+                        <x-nb.field label="العنوان" name="address" :value="$m->address" span="full" />
+                    </div>
+                    <div id="tab-study" class="nb-form-grid" role="tabpanel" hidden>
+                        <x-nb.field label="المؤهل الدراسي" name="educational_qualification" :value="$m->educational_qualification" />
+                        <x-nb.field label="تاريخ المؤهل" name="qualification_date" type="date" :value="$m->qualification_date" />
+                    </div>
+                    <div id="tab-work" class="nb-form-grid" role="tabpanel" hidden>
+                        <x-nb.field label="الوظيفة" name="job" :value="$m->job" />
+                        <x-nb.field label="جهة العمل" name="job_destination" :value="$m->job_destination" />
+                        <x-nb.field label="عنوان العمل" name="job_address" :value="$m->job_address" />
+                        <x-nb.field label="تليفون العمل" name="job_tel" type="tel" dir="ltr" :value="$m->job_tel" />
+                    </div>
+                    <div id="tab-membership" class="nb-form-grid" role="tabpanel" hidden>
+                        <x-nb.choice label="نوع العضوية" name="membership_type" :options="['عامل', 'إنتساب']" :value="$m->membership_type" />
+                        <x-nb.field label="رقم العضوية" name="member_id" type="number" :value="$m->member_id" required />
+                        <x-nb.field label="الصورة الشخصية" name="img" type="file" accept="image/*" preview="#member-photo" hint="سيبها فاضية لو مش هتغيّرها" />
+                        <x-nb.field label="صورة البطاقة" name="id_img" type="file" accept="image/*" preview="#member-id-card" hint="سيبها فاضية لو مش هتغيّرها" />
+                    </div>
+                    <div id="tab-health" class="nb-form-grid" role="tabpanel" hidden>
+                        <label class="nb-check nb-span-full"><input type="checkbox" name="status" value="1" @checked((int) $m->status === 2)> المشترك متوفي</label>
+                        <div class="nb-span-full" data-nb-when="status:1">
+                            <x-nb.field label="اسم المقبرة" name="tomb_name" type="select" :options="$tombs->pluck('title', 'title')->all()" :value="$m->tomb_name" />
+                        </div>
+                        <div class="nb-alert nb-alert--gold nb-span-full"><i data-feather="info"></i><span>لما تعلّم إن المشترك متوفي، حالته بتتغير ومبيتحسبش عليه اشتراك.</span></div>
+                    </div>
+                </div>
+                <footer class="nb-card__foot">
+                    <x-nb.button variant="ghost" :href="route('subscriber.all')">إلغاء</x-nb.button>
+                    <x-nb.button type="submit" icon="check">حفظ التعديلات</x-nb.button>
+                </footer>
+            </form>
+
+            <div class="nb-stack">
+                <x-nb.card title="عليه دلوقتي" icon="alert-circle" :tone="$owed ? 'terra' : 'green'" flush>
+                    <x-slot:actions><span class="nb-strong {{ $owed ? 'nb-out' : 'nb-in' }}">{{ number_format($owed) }} ج.م</span></x-slot:actions>
+                    <div class="nb-list">
+                        @forelse ($dues as $due)
+                            <div class="nb-list__row">
+                                <div class="nb-list__main"><strong>{{ $due->transaction_type === 'إشتراك' ? 'إشتراك '.$due->item : $due->item }}</strong><span>مطلوب {{ number_format($due->total_amount) }} · مدفوع {{ number_format((int) $due->amount_paid) }}</span></div>
+                                <span class="nb-out">{{ number_format((int) $due->amount_remaining) }}</span>
+                            </div>
+                        @empty
+                            <x-nb.empty icon="check-circle" title="مفيش مستحقات" />
+                        @endforelse
+                    </div>
+                    @if ($owed)
+                        <x-slot:footer><x-nb.button class="nb-btn--block" icon="credit-card" :href="route('subscription.history', $m->id)">سداد المستحقات</x-nb.button></x-slot:footer>
+                    @endif
+                </x-nb.card>
+
+                <x-nb.card title="آخر المدفوعات" icon="clock" flush>
+                    <div class="nb-list">
+                        @forelse ($payments as $p)
+                            <div class="nb-list__row">
+                                <div class="nb-list__main"><strong>{{ $p->transaction_type }} {{ $p->item }}</strong><span>{{ $p->payment_date }} · إيصال {{ $p->inv_no ?? '—' }}</span></div>
+                                <span class="nb-in">{{ number_format($p->amount) }}</span>
+                            </div>
+                        @empty
+                            <x-nb.empty icon="clock" title="لسه مفيش مدفوعات" />
+                        @endforelse
+                    </div>
+                </x-nb.card>
+
+                <x-nb.card title="الصور" icon="image">
+                    <div class="nb-cols">
+                        <figure style="margin: 0">
+                            <img id="member-photo" class="nb-thumb" style="width: 100%; height: 140px" src="{{ $avatar }}" alt="الصورة الشخصية" @if (! $avatar) hidden @endif onerror="this.hidden = true">
+                            @unless ($avatar)<x-nb.avatar :name="$m->name" size="xl" />@endunless
+                            <figcaption class="nb-hint">الصورة الشخصية</figcaption>
+                        </figure>
+                        <figure style="margin: 0">
+                            <img id="member-id-card" class="nb-thumb" style="width: 100%; height: 140px" src="{{ $idCard }}" alt="صورة البطاقة" @if (! $idCard) hidden @endif onerror="this.hidden = true">
+                            @unless ($idCard)<x-nb.empty icon="credit-card" title="مفيش صورة بطاقة" style="padding: 14px" />@endunless
+                            <figcaption class="nb-hint">صورة البطاقة</figcaption>
+                        </figure>
+                    </div>
+                </x-nb.card>
             </div>
         </div>
     </div>

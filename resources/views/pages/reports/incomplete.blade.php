@@ -1,159 +1,49 @@
+@php
+    $groups = [
+        ['id' => 'ssn', 'label' => 'ناقص الرقم القومي', 'icon' => 'credit-card', 'rows' => $incompleteSSN, 'count' => $incompleteSSNCount, 'field' => 'ssn', 'head' => 'الرقم القومي'],
+        ['id' => 'mobile', 'label' => 'ناقص رقم المحمول', 'icon' => 'phone', 'rows' => $incompleteMobile, 'count' => $incompleteMobileCount, 'field' => 'mobile_no', 'head' => 'رقم المحمول'],
+        ['id' => 'address', 'label' => 'ناقص العنوان', 'icon' => 'map-pin', 'rows' => $incompleteAddress, 'count' => $incompleteAddressCount, 'field' => 'address', 'head' => 'العنوان'],
+    ];
+@endphp
 @extends('layouts.master')
-@section('title', 'تقارير النواقص')
-@section('breadcrumb-title')
-    <h3>تقارير النواقص</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">التقارير</li>
-    <li class="breadcrumb-item active">تقارير النواقص</li>
-@endsection
+@section('title', 'البيانات الناقصة')
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-img text-center">
-                            <img width="100" height="100" src="https://img.icons8.com/fluency/100/identity-theft.png" alt="identity-theft"/>
-                        </div>
-                        <div class="card-content text-center">
-                            <h3 class="text-center text-muted text-decoration-underline mb-4">الرقم القومي</h3>
-                            <p class="mb-3 fw-bold text-muted">{{$incompleteSSNCount}}</p>
-                            <button class="btn btn-primary fw-bold w-100 fs-5" type="button" data-bs-toggle="modal" data-bs-target="#ssn">المزيد</button>
-                            <div class="fade modal" id="ssn" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-centered-dialog modal-fullscreen">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h3 class="modal-title fs-5 text-white" id="exampleModalLabel">بيانات الرقم القومي</h3>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="table-responsive">
-                                                <table class="table display align-middle text-center table-hover" id="table35" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                                    <thead>
-                                                        <tr>
-                                                            <th class="text-center">رقم العضوية</th>
-                                                            <th class="text-center">إسم العضو</th>
-                                                            <th class="text-center">رقم القومي</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach ($incompleteSSN as $ssn)
-                                                            <tr>
-                                                                <td>{{$ssn->member_id}}</td>
-                                                                <td>{{$ssn->name}}</td>
-                                                                <td>{{$ssn->ssn}}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">إغلاق</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <x-nb.page title="البيانات الناقصة" subtitle="أعضاء ناقصهم بيانات أساسية؛ افتح ملف العضو وكمّلها" :crumbs="['التقارير']" />
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            @foreach ($groups as $g)
+                <x-nb.stat :label="$g['label']" :value="number_format($g['count'])" :icon="$g['icon']" :tone="$g['count'] ? 'terra' : 'green'" />
+            @endforeach
+        </x-nb.stats>
+
+        <section class="nb-card">
+            <div class="nb-tabs" data-nb-tabs role="tablist">
+                @foreach ($groups as $g)
+                    <button type="button" @class(['is-on' => $loop->first]) data-nb-tab="#missing-{{ $g['id'] }}" role="tab"><i data-feather="{{ $g['icon'] }}"></i>{{ $g['label'] }} <em>{{ $g['count'] }}</em></button>
+                @endforeach
             </div>
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-img text-center">
-                            <img width="100" height="100" src="https://img.icons8.com/fluency/100/google-pixel6.png" alt="google-pixel6"/>
-                        </div>
-                        <div class="card-content text-center">
-                            <h3 class="text-center text-muted text-decoration-underline mb-4">رقم المحمول</h3>
-                            <p class="mb-3 fw-bold text-muted">{{$incompleteMobileCount}}</p>
-                            <button class="btn btn-primary fw-bold w-100 fs-5" type="button" data-bs-toggle="modal" data-bs-target="#mobile">المزيد</button>
-                            <div class="fade modal" id="mobile" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-centered-dialog modal-fullscreen">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h3 class="modal-title fs-5 text-white" id="exampleModalLabel">بيانات رقم المحمول</h3>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="table-responsive">
-                                                <table class="table display align-middle text-center table-hover" id="table36" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                                    <thead>
-                                                        <tr>
-                                                            <th class="text-center">رقم العضوية</th>
-                                                            <th class="text-center">إسم العضو</th>
-                                                            <th class="text-center">رقم المحمول</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach ($incompleteMobile as $mobile)
-                                                            <tr>
-                                                                <td>{{$mobile->member_id}}</td>
-                                                                <td>{{$mobile->name}}</td>
-                                                                <td>{{$mobile->mobile_no}}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">إغلاق</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            @foreach ($groups as $g)
+                <div id="missing-{{ $g['id'] }}" role="tabpanel" @unless ($loop->first) hidden @endunless>
+                    @if ($g['rows']->isEmpty())
+                        <x-nb.empty icon="check-circle" title="كل الأعضاء بياناتهم كاملة هنا" />
+                    @else
+                        <x-nb.table :id="'missing-table-'.$g['id']" :order="[[0, 'asc']]">
+                            <thead><tr><th>رقم العضوية</th><th>العضو</th><th>{{ $g['head'] }}</th><th class="no-sort is-actions"></th></tr></thead>
+                            <tbody>
+                                @foreach ($g['rows'] as $row)
+                                    <tr>
+                                        <td class="nb-num">{{ $row->member_id }}</td>
+                                        <td class="nb-strong">{{ $row->name }}</td>
+                                        <td>{!! filled($row->{$g['field']}) ? e($row->{$g['field']}) : '<span class="nb-badge nb-badge--terra">ناقص</span>' !!}</td>
+                                        <td class="is-actions"><x-nb.button size="sm" variant="soft" icon="edit-2" :href="route('subscriber.details', $row->id)">كمّل البيانات</x-nb.button></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </x-nb.table>
+                    @endif
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-img text-center">
-                            <img width="100" height="100" src="https://img.icons8.com/fluency/100/address-book-2.png" alt="address-book-2"/>
-                        </div>
-                        <div class="card-content text-center">
-                            <h3 class="text-center text-muted text-decoration-underline mb-4">العنوان</h3>
-                            <p class="mb-3 fw-bold text-muted">{{$incompleteAddressCount}}</p>
-                            <button class="btn btn-primary fw-bold w-100 fs-5" type="button" data-bs-toggle="modal" data-bs-target="#address">المزيد</button>
-                            <div class="fade modal" id="address" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-centered-dialog modal-fullscreen">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h3 class="modal-title fs-5 text-white" id="exampleModalLabel">بيانات العنوان</h3>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="table-responsive">
-                                                <table class="table display align-middle text-center table-hover" id="incompleteAddress" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                                    <thead>
-                                                        <tr>
-                                                            <th class="text-center">رقم العضوية</th>
-                                                            <th class="text-center">إسم العضو</th>
-                                                            <th class="text-center">العنوان</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach ($incompleteAddress as $address)
-                                                            <tr>
-                                                                <td>{{$address->member_id}}</td>
-                                                                <td>{{$address->name}}</td>
-                                                                <td>{{$address->address}}</td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">إغلاق</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+            @endforeach
+        </section>
     </div>
 @endsection

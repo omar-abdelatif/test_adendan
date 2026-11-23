@@ -1,65 +1,16 @@
-@extends('layouts.app')
-
+@extends('layouts.guest')
+@section('title', 'كلمة سر جديدة')
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Reset Password') }}</div>
-
-                <div class="card-body">
-                    <form method="POST" action="{{ route('password.update') }}">
-                        @csrf
-
-                        <input type="hidden" name="token" value="{{ $token }}">
-
-                        <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus>
-
-                                @error('email')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
-
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <label for="password-confirm" class="col-md-4 col-form-label text-md-end">{{ __('Confirm Password') }}</label>
-
-                            <div class="col-md-6">
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
-                            </div>
-                        </div>
-
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Reset Password') }}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+    <div>
+        <h1>كلمة سر جديدة</h1>
+        <p>اختار كلمة سر جديدة لحسابك.</p>
     </div>
-</div>
+    <form method="POST" action="{{ route('password.update') }}" class="nb-form" novalidate>
+        @csrf
+        <input type="hidden" name="token" value="{{ $token }}">
+        <x-nb.field label="البريد الإلكتروني" name="email" type="email" :value="$email ?? old('email')" dir="ltr" required autocomplete="email" id="email" />
+        <x-nb.field label="كلمة السر الجديدة" name="password" type="password" dir="ltr" required autocomplete="new-password" id="password" />
+        <x-nb.field label="تأكيد كلمة السر" name="password_confirmation" type="password" dir="ltr" required autocomplete="new-password" id="password-confirm" />
+        <button type="submit" class="nb-btn nb-btn--block">حفظ كلمة السر</button>
+    </form>
 @endsection

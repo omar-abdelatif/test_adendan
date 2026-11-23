@@ -1,76 +1,45 @@
+@php
+    $me = Auth::user();
+    $avatar = $me->avatar ? asset('assets/images/users/'.$me->avatar) : null;
+@endphp
 @extends('layouts.master')
-@section('title', 'الملف الشخصي')
-@section('breadcrumb-title')
-    <h3>تعديل الملف الشخصي</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item active">الملف الشخصي</li>
-@endsection
+@section('title', 'حسابي')
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="update-form">
-                    <div class="card">
-                        <div class="card-header">
-                            <h4 class="card-title mb-0 text-center text-white">ملفي الشخصي</h4>
-                            <div class="card-options">
-                                <a class="card-options-collapse" href="#" data-bs-toggle="card-collapse">
-                                    <i class="fe fe-chevron-up"></i>
-                                </a>
-                                <a class="card-options-remove" href="#" data-bs-toggle="card-remove">
-                                    <i class="fe fe-x"></i>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <form action="{{route('user.update')}}" method="POST" enctype="multipart/form-data">
-                                @csrf
-                                <input type="hidden" name="id" value={{Auth::user()->id}}>
-                                <div class="row">
-                                    <div class="col-lg-12">
-                                        <div class="profile-title">
-                                            <div class="media flex-column align-items-center">
-                                                <img class="rounded-circle" width="100" height="100" alt="{{Auth::user()->avatar}}" src="{{Auth::user()->avatar ? asset('assets/images/users/'.Auth::user()->avatar) : 'https://www.pulsecarshalton.co.uk/wp-content/uploads/2016/08/jk-placeholder-image.jpg'}}">
-                                                <div class="media-body text-center text-white mt-2">
-                                                    <h5 class="mb-1">{{Auth::user()->name}}</h5>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <div class="form-group mb-3">
-                                            <label class="form-label text-white">الإسم بالكامل:</label>
-                                            <input class="form-control text-secondary" type="text" name="name" value="{{Auth::user()->name}}">
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <div class="form-group mb-3">
-                                            <label class="form-label text-white">كلمة السر:</label>
-                                            <input class="form-control text-secondary" type="password" name="password" placeholder="كلمة السر">
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-4">
-                                        <div class="form-group mb-3">
-                                            <label class="form-label text-white">البريد الإلكتروني:</label>
-                                            <input class="form-control text-secondary" type="email" name="email" value={{Auth::user()->email}} readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-12">
-                                        <div class="form-group mb-3">
-                                            <label class="form-label text-white">الصورة:</label>
-                                            <input type="file" name="avatar"  class="form-control" value="{{Auth::user()->avatar}}">
-                                        </div>
-                                        <div class="card-footer text-end pb-0 ">
-                                            <button class="btn btn-primary" type="submit">حفظ التعديل</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+    <x-nb.page title="حسابي" subtitle="بياناتك كموظف في الداشبورد" />
+
+    <div class="nb-split">
+        <form action="{{ route('user.update') }}" method="POST" enctype="multipart/form-data" class="nb-card">
+            @csrf
+            <input type="hidden" name="id" value="{{ $me->id }}">
+            <header class="nb-card__head">
+                <span class="nb-card__icon" aria-hidden="true"><i data-feather="user"></i></span>
+                <h2 class="nb-card__title">تعديل البيانات</h2>
+            </header>
+            <div class="nb-card__body">
+                <div class="nb-form-grid">
+                    <x-nb.field label="الإسم بالكامل" name="name" :value="$me->name" required />
+                    <x-nb.field label="البريد الإلكتروني" name="email" type="email" dir="ltr" :value="$me->email" readonly hint="البريد مينفعش يتغير من هنا" />
+                    <x-nb.field label="كلمة سر جديدة" name="password" type="password" dir="ltr" autocomplete="new-password" hint="سيبها فاضية لو مش هتغيّرها" />
+                    <x-nb.field label="الصورة" name="avatar" type="file" accept="image/*" preview="#me-photo" />
                 </div>
             </div>
-        </div>
+            <footer class="nb-card__foot">
+                <x-nb.button type="submit" icon="check">حفظ التعديلات</x-nb.button>
+            </footer>
+        </form>
+
+        <x-nb.card>
+            <div class="nb-stack-sm" style="align-items: center; text-align: center">
+                <x-nb.avatar :name="$me->name" :src="$avatar" size="xl" tone="teal" />
+                <img id="me-photo" hidden alt="" class="nb-thumb" style="width: 132px; height: 150px; border-radius: 999px 999px 20px 20px">
+                <h2 style="font-size: 20px">{{ $me->name }}</h2>
+                <div class="nb-chips" style="justify-content: center">
+                    @foreach ($me->roles as $role)
+                        <x-nb.badge :tone="$role->name === 'master' ? 'ink' : 'teal'">{{ $role->name === 'master' ? 'مدير النظام' : $role->name }}</x-nb.badge>
+                    @endforeach
+                </div>
+                <span class="nb-muted" dir="ltr">{{ $me->email }}</span>
+            </div>
+        </x-nb.card>
     </div>
 @endsection

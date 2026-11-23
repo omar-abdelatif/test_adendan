@@ -40,6 +40,12 @@ enum TransactionType: string
         return [self::Donation->value, self::LegacyDonations->value, self::AnnualDonation->value, self::OuterDonation->value];
     }
 
+    /** @return list<string> money moved between the safe and the bank: neither income nor spending. */
+    public static function transferValues(): array
+    {
+        return [self::Transfer->value, self::LegacyBankDeposit->value, self::LegacyBankWithdrawal->value];
+    }
+
     /** @return list<string> */
     public static function smsValues(): array
     {

@@ -1,48 +1,8 @@
-<!-- latest jquery-->
-<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-<script src="https://cdn.datatables.net/1.13.2/js/jquery.dataTables.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-<script src="{{asset('assets/js/jquery.ui.min.js')}}"></script>
-<!-- feather icon js-->
+{{-- jQuery + the DataTables engine (no theme), feather icons, then the dashboard behaviour. --}}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="{{ asset('assets/js/icons/feather-icon/feather.min.js') }}"></script>
-<script src="{{ asset('assets/js/icons/feather-icon/feather-icon.js') }}"></script>
-<!-- scrollbar js-->
-<script src="{{ asset('assets/js/scrollbar/simplebar.js') }}"></script>
-<script src="{{ asset('assets/js/scrollbar/custom.js') }}"></script>
-<!-- Sidebar jquery-->
-<!-- Plugins JS start-->
-<script id="menu" src="{{asset('assets/js/sidebar-menu.js')}}"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-<script src="{{ asset('assets/js/datepicker/date-picker/datepicker.js') }}"></script>
-<script src="{{asset('assets/js/datepicker/date-picker/datepicker.ar.js')}}"></script>
-{{-- <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script> --}}
-<script src="{{asset('assets/js/ckeditor/ckeditor.js')}}"></script>
-<script src="{{asset('assets/js/ckeditor/build-config.js')}}"></script>
-<script src="{{asset('assets/js/ckeditor/styles.js')}}"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-@yield('script')
+<script src="{{ asset('assets/js/adendan.js') }}?v={{ filemtime(public_path('assets/js/adendan.js')) }}"></script>
 <script>
-    @if(Session::has('message'))
-        var type = "{{ Session::get('alert-type','info') }}"
-        switch(type){
-            case 'info':
-                toastr.info(" {{ Session::get('message') }} ");
-                break;
-            case 'success':
-                toastr.success(" {{ Session::get('message') }} ");
-                break;
-            case 'warning':
-                toastr.warning(" {{ Session::get('message') }} ");
-                break;
-            case 'error':
-                toastr.error(" {{ Session::get('message') }} ");
-                break;
-        }
-    @endif
+    $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content } });
 </script>
-<!-- Plugins JS Ends-->
-<!-- Theme js-->
-<script src="{{ asset('assets/js/script.js') }}"></script>
-{{-- ! Validation Forms ! --}}
-<script src="{{asset('assets/js/form-validation-custom.js')}}"></script>
-<script src={{asset('assets/js/custom-script.js')}}></script>

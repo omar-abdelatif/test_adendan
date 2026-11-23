@@ -1,79 +1,56 @@
+@php
+    $top = \App\Models\Subscribers::query()->billable()->whereNotNull('address')->where('address', '!=', '')
+        ->selectRaw('address, COUNT(*) AS total')->groupBy('address')->orderByDesc('total')->limit(10)->pluck('total', 'address');
+    $max = max(1, $top->max() ?? 1);
+    $results = $locations ?? collect();
+    $phone = fn ($n) => $n ? '0'.ltrim((string) $n, '0') : '—';
+@endphp
 @extends('layouts.master')
-@section('title', 'تقارير السكن')
-@section('breadcrumb-title')
-    <h3>تقارير السكن</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">التقارير</li>
-    <li class="breadcrumb-item active">تقارير السكن</li>
-@endsection
+@section('title', 'تقرير السكن')
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="location-filter w-50 mx-auto mb-5">
-                            <form action="{{route('reports.location')}}" method="get">
-                                @csrf
-                                <div class="form-group d-flex align-items-center">
-                                    <input class="form-control text-white" name="address" type="text" placeholder="إسم المنطقة">
-                                    <button type="submit" class="btn btn-success px-4 ms-3">
-                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="table-responsive">
-                            <div class="searchResultTitle text-center mb-5">
-                                @if (isset($locationKey) && $locations->isNotEmpty())
-                                    <h1>نتائج البحث عن "{{ $locationKey }}"</h1>
-                                @else
-                                    <h1>{{ $message }}</h1>
-                                @endif
-                            </div>
-                            @if (isset($locationKey) && $locations->isNotEmpty())
-                                <table class="table display align-middle text-center table-hover" id="table" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">#</th>
-                                            <th class="text-center">رقم العضوية</th>
-                                            <th class="text-center">الأسم</th>
-                                            <th class="text-center">العنوان</th>
-                                            <th class="text-center">رقم المحمول</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php $i =1 ?>
-                                        @foreach ($locations as $item)
-                                            <tr>
-                                                <td class="text-center text-white">{{$i++}}</td>
-                                                <td class="text-center text-white">{{$item->member_id}}</td>
-                                                <td class="text-center text-white">{{$item->name}}</td>
-                                                <td class="text-center text-white">{{$item->address}}</td>
-                                                <td class="text-center text-white">{{$item->mobile_no}}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            @else
-                                <table class="table display align-middle text-center table-hover" id="table" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center"></th>
-                                            <th class="text-center">رقم العضوية</th>
-                                            <th class="text-center">الأسم</th>
-                                            <th class="text-center">العنوان</th>
-                                            <th class="text-center">رقم المحمول</th>
-                                            <th class="text-center">حالة الإشتراك</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <x-nb.page title="تقرير السكن" subtitle="الأعضاء ساكنين فين، عشان التواصل والمناسبات" :crumbs="['التقارير']" />
+
+    <div class="nb-split">
+        <div class="nb-stack">
+            <x-nb.card title="بحث بالمنطقة" icon="search">
+                <form action="{{ route('reports.location') }}" method="GET" class="nb-row" style="align-items: flex-end">
+                    <x-nb.field label="المنطقة أو العنوان" name="address" :value="$locationKey ?? null" placeholder="مثلاً: عين شمس" style="width: 280px" />
+                    <x-nb.button type="submit" icon="search">بحث</x-nb.button>
+                </form>
+            </x-nb.card>
+
+            <x-nb.card :title="isset($locationKey) && $locationKey ? 'ساكنين في «'.$locationKey.'»' : 'النتايج'" :subtitle="$results->isNotEmpty() ? $results->count().' عضو' : null" icon="map-pin" flush>
+                @if ($results->isEmpty())
+                    <x-nb.empty icon="map" :title="$message ?? 'اكتب اسم منطقة عشان تشوف الأعضاء'" />
+                @else
+                    <x-nb.table id="location-table" :order="[[0, 'asc']]">
+                        <thead><tr><th>رقم العضوية</th><th>العضو</th><th>العنوان</th><th>رقم المحمول</th><th>الحالة</th></tr></thead>
+                        <tbody>
+                            @foreach ($results as $item)
+                                <tr>
+                                    <td class="nb-num">{{ $item->member_id }}</td>
+                                    <td class="nb-strong">{{ $item->name }}</td>
+                                    <td>{{ $item->address }}</td>
+                                    <td class="nb-num" dir="ltr">{{ $phone($item->mobile_no) }}</td>
+                                    <td><x-nb.member-status :status="$item->status" /></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </x-nb.table>
+                @endif
+            </x-nb.card>
         </div>
+
+        <x-nb.card title="أكتر المناطق" icon="map" tone="gold">
+            <div class="nb-bars">
+                @foreach ($top as $place => $total)
+                    <div class="nb-bars__row">
+                        <a href="{{ route('reports.location', ['address' => $place]) }}">{{ $place }}</a>
+                        <span class="nb-bars__track"><span style="width: {{ round($total / $max * 100) }}%"></span></span>
+                        <span class="nb-bars__value">{{ number_format($total) }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </x-nb.card>
     </div>
 @endsection

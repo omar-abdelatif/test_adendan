@@ -6,14 +6,16 @@ $(function () {
         ajax: { url: "ajax/data/subscribers" },
         processing: true,
         serverSide: true,
-        order: [[0, "asc"]],
+        order: [[1, "asc"]], // by membership number; column 0 is the row counter, not a database column
         columns: [
             {
-                data: "#",
+                // expand/collapse control. The server rejects "#" as a column name, so point it at id and show nothing.
+                data: "id",
                 title: "#",
                 className: "dt-control",
                 orderable: false,
-                defaultContent: "",
+                searchable: false,
+                render: () => "",
             },
             { data: "member_id", title: "رقم العضوية" },
             { data: "name", title: "الإسم" },
@@ -52,7 +54,7 @@ $(function () {
                     }
                 },
             },
-            { data: "Actions", title: "Actions", orderable: false },
+            { data: "Actions", title: "Actions", orderable: false, searchable: false },
         ],
     });
     function details(d) {

@@ -1,74 +1,63 @@
+@php
+    $bands = \App\Models\Subscribers::query()->billable()->whereNotNull('birthdate')
+        ->selectRaw("CASE
+            WHEN TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) < 25 THEN 1
+            WHEN TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) < 35 THEN 2
+            WHEN TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) < 45 THEN 3
+            WHEN TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) < 55 THEN 4
+            WHEN TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) < 65 THEN 5
+            ELSE 6 END AS band, COUNT(*) AS total")
+        ->groupBy('band')->pluck('total', 'band');
+    $names = [1 => 'أقل من 25', 2 => '25 – 34', 3 => '35 – 44', 4 => '45 – 54', 5 => '55 – 64', 6 => '65 فأكتر'];
+    $max = max(1, $bands->max() ?? 1);
+    $results = $ages ?? collect();
+@endphp
 @extends('layouts.master')
-@section('title', 'تقارير السن')
-@section('breadcrumb-title')
-    <h3>تقارير السن</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">التقارير</li>
-    <li class="breadcrumb-item active">تقارير السن</li>
-@endsection
+@section('title', 'تقرير السن')
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="age-filter w-50 mx-auto mb-5">
-                            <form action="{{route('reports.age')}}" method="get">
-                                @csrf
-                                <div class="form-group d-flex align-items-center">
-                                    <input class="form-control text-muted" name="birthdate" type="text" placeholder="سنة الميلاد مثال ( 1980 )">
-                                    <button type="submit" class="btn btn-success px-4 ms-3">
-                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="table-responsive">
-                            <div class="searchResultTitle text-center mb-5">
-                                @if (isset($ageKey))
-                                    @if ($ages->isNotEmpty())
-                                        <h1>نتائج البحث عن "{{ $ageKey }}"</h1>
-                                    @elseif (isset($message))
-                                        <h1>{{ $message }}</h1>
-                                    @endif
-                                @endif
-                            </div>
-                            @if (isset($ageKey) && $ages->isNotEmpty())
-                                <table class="table display align-middle text-center table-hover" id="table" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">رقم العضوية</th>
-                                            <th class="text-center">الأسم</th>
-                                            <th class="text-center">تاريخ الميلاد</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($ages as $age)
-                                            <tr>
-                                                <td>{{$age->member_id}}</td>
-                                                <td>{{$age->name}}</td>
-                                                <td>{{$age->birthdate}}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            @else
-                                <table class="table display align-middle text-center table-hover" id="table" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center"></th>
-                                            <th class="text-center">رقم العضوية</th>
-                                            <th class="text-center">الأسم</th>
-                                            <th class="text-center">تاريخ الميلاد</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <x-nb.page title="تقرير السن" subtitle="الأعضاء حسب سنة الميلاد، وتوزيعهم على الأعمار" :crumbs="['التقارير']" />
+
+    <div class="nb-split">
+        <div class="nb-stack">
+            <x-nb.card title="بحث بسنة الميلاد" icon="search">
+                <form action="{{ route('reports.age') }}" method="GET" class="nb-row" style="align-items: flex-end">
+                    <x-nb.field label="سنة الميلاد" name="birthdate" type="number" min="1900" :max="now()->year" :value="$ageKey ?? null" placeholder="مثلاً 1985" style="width: 220px" />
+                    <x-nb.button type="submit" icon="search">بحث</x-nb.button>
+                </form>
+            </x-nb.card>
+
+            <x-nb.card :title="isset($ageKey) && $ageKey ? 'مواليد '.$ageKey : 'النتايج'" :subtitle="$results->isNotEmpty() ? $results->count().' عضو' : null" icon="users" flush>
+                @if ($results->isEmpty())
+                    <x-nb.empty icon="search" :title="$message ?? 'اكتب سنة ميلاد عشان تشوف الأعضاء'" />
+                @else
+                    <x-nb.table id="age-table" :order="[[2, 'asc']]">
+                        <thead><tr><th>رقم العضوية</th><th>العضو</th><th>تاريخ الميلاد</th><th>السن</th><th>الحالة</th></tr></thead>
+                        <tbody>
+                            @foreach ($results as $age)
+                                <tr>
+                                    <td class="nb-num">{{ $age->member_id }}</td>
+                                    <td class="nb-strong">{{ $age->name }}</td>
+                                    <td class="nb-num">{{ $age->birthdate }}</td>
+                                    <td class="nb-num">{{ $age->birthdate ? \Illuminate\Support\Carbon::parse($age->birthdate)->age : '—' }}</td>
+                                    <td><x-nb.member-status :status="$age->status" /></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </x-nb.table>
+                @endif
+            </x-nb.card>
         </div>
+
+        <x-nb.card title="الأعضاء حسب السن" icon="bar-chart-2" tone="gold">
+            <div class="nb-bars">
+                @foreach ($names as $band => $label)
+                    <div class="nb-bars__row">
+                        <span>{{ $label }}</span>
+                        <span class="nb-bars__track"><span style="width: {{ round(($bands[$band] ?? 0) / $max * 100) }}%"></span></span>
+                        <span class="nb-bars__value">{{ number_format($bands[$band] ?? 0) }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </x-nb.card>
     </div>
 @endsection

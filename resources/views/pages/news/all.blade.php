@@ -1,253 +1,137 @@
 @php
-    $user = Auth::user();
+    $categories = ['أخبار عامة', 'أخبار ثقافية', 'أفراح', 'عزاء', 'أخبار رياضية'];
+    $tones = ['أخبار عامة' => 'teal', 'أخبار ثقافية' => 'green', 'أفراح' => 'gold', 'عزاء' => 'ink', 'أخبار رياضية' => 'terra'];
+    $image = fn ($n) => $n->img ? asset('assets/images/news-imgs/'.$n->img)
+        : ($n->category === 'عزاء' ? asset('assets/frontend/images/bg/news/death/0205f1b1728e6eacf3e5935c553516b8.jpg') : asset('assets/frontend/images/icons/default/download.jpeg'));
+    $thisMonth = $news->filter(fn ($n) => $n->created_at?->isSameMonth(now()))->count();
 @endphp
 @extends('layouts.master')
 @section('title', 'الأخبار')
-@section('breadcrumb-title')
-    <h3>كل الأخبار</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item active">الأخبار</li>
-@endsection
-@section('script')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.repeater/1.2.1/jquery.repeater.min.js"></script>
-@endsection
-@section('modals')
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#add_news">إضافة خبر جديد</button>
-    <div class="modal fade" id="add_news" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5 text-white" id="exampleModalLabel">إضافة خبر</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action={{route('news.store')}} method="post" id="newsForm" enctype="multipart/form-data">
-                        @csrf
-                        <div class="form-group mb-lg-3 mb-md-2">
-                            <label for="title" class="text-muted">العنوان</label>
-                            <input type="text" class="form-control text-white" id="newsTitle" oninput="this.value = this.value.replace(/[^\u0600-\u06FF\s\d!@#$%^&*()_+\-=\[\]{};:'\\|,.<>\/?~`]/g, '')" name="title" placeholder="عنوان الخبر" required>
-                            <p class="required d-none text-danger fw-bold mb-0" id="newsReq">حقل العنوان مطلوب</p>
-                            <p class="required d-none text-danger fw-bold mb-0" id="newsMsg">يجب ان يكون العنوان باللغة العربية ولا يقل عن 7 أحرف</p>
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="newscontent" class="form-label text-secondary">محتوى الخبر</label>
-                            <textarea id="newscontent" name="description" dir="rtl" placeholder="محتوى الخبر" class="form-control text-secondary" rows="5"></textarea>
-                        </div>
-                        <div class="form-group mb-lg-3 mb-md-2">
-                            <label for="categorySelect" class="text-muted">إختر التصنيف</label>
-                            <select class="form-select form-select-sm" name="category" id="categorySelect" required>
-                                <option value="التصنيف" selected disabled>التصنيف</option>
-                                <option value="أخبار عامة">أخبار عامة</option>
-                                <option value="أخبار ثقافية">أخبار ثقافية</option>
-                                <option value="أفراح">أفراح</option>
-                                <option value="عزاء">عزاء</option>
-                                <option value="أخبار رياضية">أخبار رياضية</option>
-                            </select>
-                            <p class="required d-none text-danger fw-bold mb-0" id="categoryMsg">يرجى اختيار تصنيف من القائمة أدناه</p>
-                        </div>
-                        <div class="form-group mb-lg-3 mb-md-2" id="img">
-                            <label for="img" class="text-muted">صورة الخبر</label>
-                            <input type="file" name="img" id="newsImg" class="form-control" accept="image/*">
-                            <p class="required d-none fw-bold text-danger mb-0" id="imgReq">هذا الحقل مطلوب</p>
-                            <p class="required d-none fw-bold text-danger mb-0" id="imgExt">يجب ان يكون امتداد الصورة [ jpg, png, jpeg, webp ]</p>
-                            <p class="required d-none fw-bold text-danger mb-0" id="imgSize">يجب ان يكون حجم الصورة اقل من 2 ميجا</p>
-                        </div>
-                        <div class="form-group mb-lg-3 mb-md-2" id="thumbs">
-                            <label for="thumb" class="text-muted">صورة المصغرة</label>
-                            <input type="file" name="thumbnail[]" class="form-control" id="thumb" multiple accept="image/*">
-                        </div>
-                        <div class="form-group mb-lg-3 mb-md-2" id="inputs">
-                            <label for="link" class="text-muted mb-3">رابط الفيديو (إذا وجد ) </label>
-                            <a href="javascript:void(0)" class="btn btn-success px-2 py-1 addRow ms-2">+</a>
-                            <input type="text" name="url[]" class="form-control text-center text-white mb-4" id="link" placeholder="رابط الفيديو">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                            <button type="submit" id="newsSubmit" role="button" class="btn btn-primary">تأكيد</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
 @section('content')
-    @if ($errors->any())
-        @foreach ($errors->all() as $error)
-            <div class="alert alert-danger text-center w-50 mt-4 mx-auto rounded" id="error">
-                <p class="mb-0">{{$error}}</p>
-            </div>
-        @endforeach
-    @endif
-    <div class="container-fluid">
-        <div class="card">
-            <div class="card-body">
-                <table id="table" class="table align-middle text-center table-hover" data-order='[[ 0, "desc" ]]' data-page-length='10'>
-                    <thead>
+    <x-nb.page title="الأخبار" subtitle="الأخبار اللي بتظهر في التطبيق والموقع" :crumbs="['التواصل']">
+        <x-slot:actions>
+            <x-nb.button icon="plus" open="#news-add">إضافة خبر</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            <x-nb.stat label="كل الأخبار" :value="number_format($news->count())" icon="book-open" />
+            <x-nb.stat label="الشهر ده" :value="$thisMonth" icon="calendar" tone="gold" />
+            <x-nb.stat label="أخبار عزاء" :value="$news->where('category', 'عزاء')->count()" icon="moon" tone="terra" />
+            <x-nb.stat label="أخبار أفراح" :value="$news->where('category', 'أفراح')->count()" icon="heart" tone="green" />
+        </x-nb.stats>
+
+        <x-nb.card title="كل الأخبار" icon="book-open" flush>
+            <x-slot:actions>
+                <div class="nb-chips">
+                    <a href="#" class="nb-chip is-on" data-nb-filter="#news-table" data-col="2" data-value="">الكل</a>
+                    @foreach ($categories as $category)
+                        <a href="#" class="nb-chip" data-nb-filter="#news-table" data-col="2" data-value="{{ $category }}">{{ $category }} <em>{{ $news->where('category', $category)->count() }}</em></a>
+                    @endforeach
+                </div>
+            </x-slot:actions>
+            <x-nb.table id="news-table" :order="[[3, 'desc']]">
+                <thead>
+                    <tr><th class="no-sort">الصورة</th><th>العنوان</th><th>التصنيف</th><th>تاريخ النشر</th><th class="no-sort is-actions"></th></tr>
+                </thead>
+                <tbody>
+                    @foreach ($news as $new)
                         <tr>
-                            <th class="text-center text-muted">#</th>
-                            <th class="text-center text-muted">العنوان</th>
-                            <th class="text-center text-muted">التصنيف</th>
-                            <th class="text-center text-muted">صورة الخبر</th>
-                            <th class="text-center text-muted">تاريخ النشر</th>
-                            <th class="text-center text-muted">Action</th>
+                            <td><img class="nb-thumb" src="{{ $image($new) }}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></td>
+                            <td class="nb-strong" style="min-width: 280px">{{ $new->title }}</td>
+                            <td><x-nb.badge :tone="$tones[$new->category] ?? null">{{ $new->category }}</x-nb.badge></td>
+                            <td class="nb-num nb-nowrap" data-order="{{ $new->created_at }}">{{ $new->created_at?->format('Y-m-d') }}</td>
+                            <td class="is-actions">
+                                <div class="nb-row-actions">
+                                    <x-nb.icon-button icon="image" label="الصور والفيديو" :href="route('show.thumbs', $new->id)" />
+                                    @if ($new->slug)
+                                        <x-nb.icon-button icon="link" label="نسخ رابط الخبر" data-nb-copy="{{ route('site.single_news', $new->slug) }}" />
+                                    @endif
+                                    <x-nb.icon-button icon="edit-2" label="تعديل" :open="'#news-edit-'.$new->id" />
+                                    <x-nb.icon-button icon="trash-2" label="حذف" tone="danger" :open="'#news-delete-'.$new->id" />
+                                </div>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($news as $new)
-                            <tr>
-                                <td class="text-center text-muted">{{$loop->iteration}}</td>
-                                <td class="text-center text-muted">{{$new->title}}</td>
-                                <td class="text-center text-muted">
-                                    @if ($new->category === 'عزاء')
-                                        <span class="badge rounded-pill py-2 px-3 bg-dark">
-                                            <b>{{$new->category}}</b>
-                                        </span>
-                                    @elseif($new->category === 'أفراح')
-                                        <span class="badge rounded-pill py-2 px-3 bg-success">
-                                            <b>{{$new->category}}</b>
-                                        </span>
-                                    @elseif($new->category === 'أخبار ثقافية')
-                                        <span class="badge rounded-pill py-2 px-3 bg-info">
-                                            <b>{{$new->category}}</b>
-                                        </span>
-                                    @elseif($new->category === 'أخبار رياضية')
-                                        <span class="badge rounded-pill py-2 px-3 bg-primary">
-                                            <b>{{$new->category}}</b>
-                                        </span>
-                                    @else
-                                        <span class="badge rounded-pill py-2 px-3 bg-secondary">
-                                            <b>{{$new->category}}</b>
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="text-center text-muted">
-                                    @if ($new->category === 'عزاء')
-                                        <img src={{ asset('assets/frontend/images/bg/news/death/0205f1b1728e6eacf3e5935c553516b8.jpg')}} class="img-fluid rounded" width="50" alt={{$new->img}}>
-                                    @elseif($new->category === 'أفراح')
-                                        @if ($new->img && $new->category === 'أفراح')
-                                            <img src={{asset('assets/images/news-imgs/'.$new->img)}} class="img-fluid rounded" width="50" alt={{$new->img}}>
-                                        @else
-                                            <img src='https://adendan.com/assets/images/news-imgs/1776934971.jpg' class="img-fluid rounded" width="50" alt={{$new->img}}>
-                                        @endif
-                                    @else
-                                        <img src={{ $new->img ? asset('assets/images/news-imgs/'.$new->img) : asset('assets/frontend/images/icons/default/download.jpeg')}} class="img-fluid rounded" width="50" alt={{$new->img}}>
-                                    @endif
-                                </td>
-                                <td class="text-center text-muted">{{ $new->created_at->format('Y-m-d') }}</td>
-                                <td class="text-center text-muted">
-                                    <div class="btn-group" role="group">
-                                        {{-- ! Button Menu ! --}}
-                                        <button class="btn btn-success rounded" id="btnGroupVerticalDrop1" type="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="fa-solid fa-ellipsis-vertical"></i>
-                                        </button>
-                                        <div class="dropdown-menu py-2 px-3 w-100" aria-labelledby="btnGroupVerticalDrop1">
-                                            {{-- ! Delete News Button ! --}}
-                                            <button type="button" class="btn btn-danger px-2 py-1" data-bs-toggle="modal" data-bs-target="#deleting_{{$new->id}}">
-                                                <i class="icofont icofont-trash"></i>
-                                            </button>
-                                            {{-- ! Updating News Button ! --}}
-                                            <button type="button" class="btn btn-warning px-2 py-1" data-bs-toggle="modal" data-bs-target="#editing_{{$new->id}}">
-                                                <i class="fa-solid fa-pen"></i>
-                                            </button>
-                                            {{-- ! Copy News Link ! --}}
-                                            <button class="copy text-dark btn btn-info px-2 py-1" data-news-id="{{$new->slug}}">
-                                                <i class="fa-solid fa-copy"></i>
-                                            </button>
-                                            {{-- ! Show Thumbnail ! --}}
-                                            <a class="text-white btn btn-success px-2 py-1" href={{route('show.thumbs',$new->id)}}>
-                                                <i class="fa-solid fa-image"></i>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    {{-- ! Deleteing Modal ! --}}
-                                    <div class="modal fade" id="deleting_{{$new->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h1 class="modal-title fs-5 text-white" id="exampleModalLabel">جار حذف خبر بعنوان {{$new->title}}</h1>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form action={{route('news.destroy', $new->id)}} method="post">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <div class="form-title text-center">
-                                                            <h3 class="text-white my-2">هل أنت متأكد من الحذف</h3>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                                                            <button type="submit" role="button" class="btn btn-primary">تأكيد</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {{-- ! Updating Modal ! --}}
-                                    <div class="modal fade" id="editing_{{$new->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-center modal-lg">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h1 class="modal-title fs-5 text-white" id="exampleModalLabel">تعديل خبر بعنوان {{$new->title}}</h1>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form action={{route('news.update')}} method="post" enctype="multipart/form-data">
-                                                        @csrf
-                                                        <input type="hidden" name="id" value={{$new->id}}>
-                                                        <div class="row">
-                                                            <div class="col-lg-12">
-                                                                <div class="form-group">
-                                                                    <label for="title" class="text-white">العنوان</label>
-                                                                    <input type="text" class="form-control text-white" name="title" value="{{$new->title}}" placeholder="عنوان الخبر">
-                                                                </div>
-                                                                <div class="form-group mb-3">
-                                                                    <label for="newscontent" class="form-label text-secondary">محتوى الخبر</label>
-                                                                    <textarea id="desc_{{$new->id}}" name="description" dir="rtl" placeholder="محتوى الخبر" data-news-id="{{$new->id}}" class="form-control text-secondary" rows="5">{{$new->description}}</textarea>
-                                                                </div>
-                                                                <div class="form-group mt-3">
-                                                                    <label for="" class="text-white">إختر التصنيف</label>
-                                                                    <select class="form-select" name="category">
-                                                                        <option selected="">التصنيف</option>
-                                                                        <option value="أخبار عامة" {{$new->category == 'أخبار عامة' ? 'selected' : ''}}>أخبار عامة</option>
-                                                                        <option value="أخبار ثقافية" {{$new->category == 'أخبار ثقافية' ? 'selected' : ''}}>أخبار ثقافية</option>
-                                                                        <option value="أفراح" {{$new->category == 'أفراح' ? 'selected' : ''}}>أفراح</option>
-                                                                        <option value="عزاء" {{$new->category == 'عزاء' ? 'selected' : ''}}>عزاء</option>
-                                                                        <option value="أخبار رياضية" {{$new->category == 'أخبار رياضية' ? 'selected' : ''}}>أخبار رياضية</option>
-                                                                    </select>
-                                                                </div>
-                                                                @if ($new->category !== 'عزاء')
-                                                                    <div class="view-img text-center mt-3">
-                                                                        <img src={{asset('assets/images/news-imgs/'.$new->img)}} width="60" data-member-id="{{ $new->id }}" class="rounded img-fluid" id="showImage_{{ $new->id }}" alt="{{$new->img}}">
-                                                                    </div>
-                                                                    <div class="form-group mt-3">
-                                                                        <label for="image" class="text-white">صورة الخبر</label>
-                                                                        <input type="file" name="img" id="image" data-member-id="{{ $new->id }}" class="form-control" value={{$new->img}} alt="{{$new->img}}" accept="image/*">
-                                                                    </div>
-                                                                    <div class="form-group mt-3">
-                                                                        <label class="text-white">صور مصغرة</label>
-                                                                        <input type="file" name="thumbnail[]" class="form-control" multiple accept="image/*">
-                                                                    </div>
-                                                                @endif
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                                                                    <button type="submit" role="button" class="btn btn-primary">تأكيد</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    @endforeach
+                </tbody>
+            </x-nb.table>
+        </x-nb.card>
     </div>
 @endsection
+
+@push('modals')
+    <x-nb.modal id="news-add" title="خبر جديد" icon="plus" size="lg" :action="route('news.store')" files submit="نشر الخبر">
+        <div class="nb-form-grid">
+            <x-nb.field label="عنوان الخبر" name="title" required span="full" />
+            <x-nb.choice label="التصنيف" name="category" :options="$categories" required span="full" />
+            <x-nb.field label="محتوى الخبر" name="description" type="textarea" rows="7" span="full" data-nb-editor />
+            <x-nb.field label="صورة الخبر" name="img" type="file" accept="image/*" />
+            <x-nb.field label="صور مصغرة (معرض)" name="thumbnail[]" type="file" accept="image/*" multiple placeholder="اختار صورة أو أكتر" />
+            <div class="nb-field nb-span-full">
+                <span class="nb-label">روابط فيديو (لو فيه)</span>
+                <div class="nb-repeat" id="news-add-videos">
+                    <div class="nb-repeat__row"><input type="url" name="url[]" class="nb-input" dir="ltr" placeholder="https://youtube.com/..."></div>
+                    <template><div class="nb-repeat__row"><input type="url" name="url[]" class="nb-input" dir="ltr" placeholder="https://youtube.com/..."><button type="button" class="nb-icon-btn nb-icon-btn--danger" data-nb-repeat-remove aria-label="حذف الرابط"><i data-feather="x"></i></button></div></template>
+                </div>
+                <button type="button" class="nb-btn nb-btn--ghost nb-btn--sm" data-nb-repeat-add="#news-add-videos" style="align-self: flex-start"><i data-feather="plus"></i>رابط تاني</button>
+            </div>
+        </div>
+    </x-nb.modal>
+
+    @foreach ($news as $new)
+        <x-nb.modal :id="'news-edit-'.$new->id" :title="'تعديل خبر'" icon="edit-2" size="lg" :action="route('news.update')" files>
+            <input type="hidden" name="id" value="{{ $new->id }}">
+            <div class="nb-form-grid">
+                <x-nb.field label="عنوان الخبر" name="title" :value="$new->title" :row="$new->id" required span="full" />
+                <x-nb.choice label="التصنيف" name="category" :options="$categories" :value="$new->category" required span="full" />
+                <x-nb.field label="محتوى الخبر" name="description" type="textarea" rows="7" :value="$new->description" :row="$new->id" span="full" data-nb-editor />
+                <div class="nb-field">
+                    <span class="nb-label">الصورة الحالية</span>
+                    <img id="news-img-{{ $new->id }}" class="nb-thumb" style="width: 100%; height: 120px" src="{{ $image($new) }}" alt="" loading="lazy">
+                </div>
+                <div class="nb-stack-sm">
+                    <x-nb.field label="صورة جديدة (اختياري)" name="img" type="file" accept="image/*" :row="$new->id" :preview="'#news-img-'.$new->id" />
+                    <x-nb.field label="إضافة صور مصغرة" name="thumbnail[]" type="file" accept="image/*" multiple :row="$new->id" />
+                </div>
+            </div>
+        </x-nb.modal>
+        <x-nb.confirm :id="'news-delete-'.$new->id" :action="route('news.destroy', $new->id)" :message="'هتحذف خبر «'.$new->title.'»؟'" />
+    @endforeach
+@endpush
+
+@push('scripts')
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
+    <script>
+        // The rich editor starts only when its modal opens, so a long list doesn't build dozens of editors.
+        // Bound once: after a form is saved the page is swapped in place and this script runs again.
+        (function () {
+        if (window.nbNewsBound) return;
+        window.nbNewsBound = true;
+        const started = new WeakSet();
+        document.addEventListener('click', (e) => {
+            const opener = e.target.closest('[data-nb-open]');
+            if (!opener || !window.ClassicEditor) return;
+            const area = document.querySelector(opener.dataset.nbOpen + ' textarea[data-nb-editor]');
+            if (!area || started.has(area)) return;
+            started.add(area);
+            ClassicEditor.create(area, { language: { ui: 'ar', content: 'ar' }, toolbar: ['bold', 'italic', 'link', 'bulletedList', 'numberedList', '|', 'undo', 'redo'] })
+                .catch(() => started.delete(area));
+        });
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('[data-nb-copy]');
+            if (!btn) return;
+            try { await navigator.clipboard.writeText(btn.dataset.nbCopy); nbToast('اتنسخ رابط الخبر', 'success'); }
+            catch (err) { nbToast(btn.dataset.nbCopy, 'info'); }
+        });
+        })();
+    </script>
+@endpush
+
+@push('styles')
+    <style>
+        .ck.ck-editor__main > .ck-editor__editable { min-height: 180px; border-radius: 0 0 12px 12px !important; font-family: 'Cairo', sans-serif; }
+        .ck.ck-toolbar { border-radius: 12px 12px 0 0 !important; background: var(--nb-sand) !important; }
+        .ck-content { line-height: 1.9; }
+    </style>
+@endpush

@@ -10,6 +10,7 @@ use App\Modules\Finance\Domain\FiscalCalendar;
 use App\Modules\Members\Application\Actions\IssueAppPasswords;
 use App\Modules\Members\Application\Actions\ManageMember;
 use App\Modules\Members\Application\Actions\RegisterMember;
+use App\Modules\Members\Application\Queries\ProfileCompleteness;
 use App\Modules\Members\Http\Requests\MemberRequest;
 use App\Modules\Members\Infrastructure\Imports\MembersImport;
 use App\Modules\Shared\Http\Concerns\RespondsWithAlerts;
@@ -17,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 
 class MembersController extends Controller
@@ -42,16 +44,34 @@ class MembersController extends Controller
             'year' => $year,
             'currentSubCost' => $cost / 12 * $months,
             'newMemberId' => (Subscribers::max('member_id') ?? 0) + 1,
+            'statusCounts' => Subscribers::query()->selectRaw('status, COUNT(*) AS total')->groupBy('status')->pluck('total', 'status')->map(fn ($n) => (int) $n),
         ]);
     }
 
-    /** Server-side DataTables feed for the members list. */
+    /** Server-side DataTables feed for the members list; each row arrives rendered (Blade escapes it). */
     public function table()
     {
-        return DataTables::of(Subscribers::query()->select(['id', 'member_id', 'name', 'img', 'id_img', 'status']))
-            ->addColumn('Actions', fn (Subscribers $row) => view('pages.subscribers.partials.table-actions', ['row' => $row])->render())
-            ->rawColumns(['Actions'])
+        return DataTables::of(Subscribers::query()->select(['id', 'member_id', 'name', 'img', 'status', 'mobile_no', 'address']))
+            ->addColumn('row', fn (Subscribers $row) => view('pages.subscribers.partials.list-row', ['row' => $row])->render())
+            ->rawColumns(['row'])
             ->make(true);
+    }
+
+    /** The member file shown beside the list when a row is picked. */
+    public function preview(Subscribers $subscriber, ProfileCompleteness $completeness)
+    {
+        return view('pages.subscribers.partials.preview', [
+            'member' => $subscriber,
+            'missing' => $completeness->missing($subscriber),
+            'percent' => $completeness->percent($subscriber),
+            'history' => Activity::query()
+                ->where('subject_type', $subscriber->getMorphClass())
+                ->where('subject_id', $subscriber->getKey())
+                ->with('causer')
+                ->latest('id')
+                ->limit(4)
+                ->get(),
+        ]);
     }
 
     public function store(MemberRequest $request, RegisterMember $register)

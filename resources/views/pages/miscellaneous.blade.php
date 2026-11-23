@@ -1,205 +1,96 @@
+@php
+    $categories = ['كهرباء', 'مياه', 'غاز', 'تلفون ارضي', 'انترنت ارضي', 'أخرى'];
+    $receipt = fn ($m) => $m->invoice_img ? asset('assets/images/miscellaneous/'.$m->invoice_img) : null;
+    $thisMonth = $miscellaneous->filter(fn ($m) => $m->created_at?->isSameMonth(now()));
+@endphp
 @extends('layouts.master')
 @section('title', 'النثريات')
-@section('breadcrumb-title')
-    <h3>النثريات</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item active">النثريات</li>
-@endsection
-@section('modals')
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#add_cat">إضافة فاتورة جديد</button>
-    <div class="modal fade" id="add_cat" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">إضافة فاتورة جديد</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+@section('content')
+    <x-nb.page title="النثريات" subtitle="فواتير ومصروفات المقر، وكل فاتورة معاها صورة الإيصال" :crumbs="['الأعضاء والمالية']">
+        <x-slot:actions>
+            <x-nb.button icon="plus" open="#misc-add">إضافة فاتورة</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            <x-nb.stat label="مصروف الشهر ده" :value="number_format($thisMonth->sum('amount'))" unit="ج.م" icon="calendar" tone="terra" :note="$thisMonth->count().' فاتورة'" />
+            <x-nb.stat label="كل المصروفات" :value="number_format($miscellaneous->sum('amount'))" unit="ج.م" icon="file-text" />
+            <x-nb.stat label="عدد الفواتير" :value="number_format($miscellaneous->count())" icon="layers" tone="gold" />
+        </x-nb.stats>
+
+        <x-nb.card title="كل الفواتير" icon="file-text" flush>
+            <x-slot:actions>
+                <div class="nb-chips">
+                    <a href="#" class="nb-chip is-on" data-nb-filter="#misc-table" data-col="1" data-value="">الكل</a>
+                    @foreach ($categories as $category)
+                        <a href="#" class="nb-chip" data-nb-filter="#misc-table" data-col="1" data-value="{{ $category }}">{{ $category }} <em>{{ $miscellaneous->where('category', $category)->count() }}</em></a>
+                    @endforeach
                 </div>
-                <div class="modal-body">
-                    <form action={{route('miscellaneous.store')}} method="post" enctype="multipart/form-data" id="miscForm">
-                        @csrf
-                        <div class="form-group mb-3">
-                            <label for="category" class="text-muted">التصنيف</label>
-                            <select name="category" class="form-select text-muted" id="category" required>
-                                <option selected>التصنيف</option>
-                                <option value="كهرباء">كهرباء</option>
-                                <option value="مياه">مياه</option>
-                                <option value="غاز">غاز</option>
-                                <option value="تلفون ارضي">تلفون ارضي</option>
-                                <option value="انترنت ارضي">انترنت ارضي</option>
-                                <option value="أخرى">أخرى</option>
-                            </select>
-                            <p class="required d-none fw-bold text-danger mb-0" id="catReq">يجب الاختيار من القائمة اعلاه</p>
-                            <input type="text" name="other_category" placeholder="تصنيف أخر" minlength="3" id="other_category" oninput="this.value = this.value.replace(/[^\u0600-\u06FF\s]/g, '')" pattern="[\u0600-\u06FF\s]{3,}" class="form-control text-muted d-none mt-3">
-                            <p class="required d-none fw-bold text-danger mb-0" id="otherReq">هذا الحقل مطلوب</p>
-                            <p class="required d-none fw-bold text-danger mb-0" id="otherMsg">يجب ان يكون باللغة العربية ولا يقل عن 3 احرف</p>
-                        </div>
-                        <div class="form-group mb-3">
-                            <label for="amount" class="text-muted">المبلغ</label>
-                            <input type="text" class="form-control text-muted" minlength="2" oninput="this.value = this.value.replace(/[^0-9]/g, '')" id="amount" name="amount" placeholder="المبلغ" required>
-                            <p class="required d-none fw-bold text-danger mb-0" id="amountReq">هذا الحقل مطلوب</p>
-                            <p class="required d-none fw-bold text-danger mb-0" id="amountMsg">يجب ان يكون المبلغ لا يقل عن 2 رقم</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="invoice_img" class="text-muted">صورة الايصال</label>
-                            <input type="file" id="invoice_img" class="form-control text-muted" name="invoice_img" accept="image/*" required>
-                            <p class="required d-none fw-bold text-danger mb-0" id="imgReq">هذا الحقل مطلوب</p>
-                            <p class="required d-none fw-bold text-danger mb-0" id="imgExt">يجب ان يكون امتداد الصورة [ jpg, png, jpeg, webp ]</p>
-                            <p class="required d-none fw-bold text-danger mb-0" id="imgSize">يجب ان يكون حجم الصورة اقل من 2 ميجا</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                            <button type="submit" role="button" id="miscSubmit" class="btn btn-primary">تأكيد</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+            </x-slot:actions>
+            <x-nb.table id="misc-table" :order="[[3, 'desc']]">
+                <thead>
+                    <tr>
+                        <th class="no-sort">الإيصال</th>
+                        <th>التصنيف</th>
+                        <th>التفاصيل</th>
+                        <th>التاريخ</th>
+                        <th class="is-end">المبلغ</th>
+                        <th class="no-sort is-actions"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($miscellaneous as $misc)
+                        <tr>
+                            <td>
+                                @if ($receipt($misc))
+                                    <a href="{{ $receipt($misc) }}" target="_blank" rel="noopener"><img class="nb-thumb" src="{{ $receipt($misc) }}" alt="إيصال" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'nb-muted',textContent:'—'}))"></a>
+                                @else
+                                    <span class="nb-muted">—</span>
+                                @endif
+                            </td>
+                            <td><x-nb.badge tone="teal">{{ $misc->category }}</x-nb.badge></td>
+                            <td>{{ $misc->other_category ?: '—' }}</td>
+                            <td data-order="{{ $misc->created_at }}" class="nb-nowrap nb-muted">{{ $misc->created_at?->locale('ar')->translatedFormat('j F Y') }}</td>
+                            <td class="is-end nb-out">{{ number_format($misc->amount) }}</td>
+                            <td class="is-actions">
+                                <div class="nb-row-actions">
+                                    <x-nb.icon-button icon="edit-2" label="تعديل" :open="'#misc-edit-'.$misc->id" />
+                                    <x-nb.icon-button icon="trash-2" label="حذف" tone="danger" :open="'#misc-delete-'.$misc->id" />
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </x-nb.table>
+        </x-nb.card>
     </div>
 @endsection
-@section('content')
-    @if ($errors->any())
-        @foreach ($errors->all() as $error)
-            <div class="alert alert-danger text-center w-50 mx-auto rounded" id="error">
-                <p class="mb-0">{{$error}}</p>
-            </div>
-        @endforeach
-    @endif
-    <section class="miscellaneouses">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <table id="table" class="table display align-middle table-hover text-center text-muted" data-order='[[ 0, "asc"]]' data-page-length="10">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">#</th>
-                                        <th class="text-center">التصنيف</th>
-                                        <th class="text-center">التصنيف الأخر</th>
-                                        <th class="text-center">المبلغ</th>
-                                        <th class="text-center">صورة الفاتورة / الإيصال</th>
-                                        <th class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php $i =1 ?>
-                                    @foreach ($miscellaneous as $misc)
-                                        <tr>
-                                            <td>{{$i++}}</td>
-                                            <td>{{$misc->category}}</td>
-                                            <td>
-                                                @if ($misc->other_category)
-                                                    {{$misc->other_category}}
-                                                @else
-                                                    <span class="fw-bold">-</span>
-                                                @endif
-                                            </td>
-                                            <td>{{$misc->amount}}</td>
-                                            <td>
-                                                @if ($misc->invoice_img)
-                                                    <button type="button" class="btn btn-transparent" data-bs-target="#proof_{{$misc->id}}" data-bs-toggle="modal">
-                                                        <img src="{{asset('assets/images/miscellaneous/'.$misc->invoice_img)}}" width="60" class="rounded" alt="">
-                                                    </button>
-                                                    <div class="modal fade" id="proof_{{$misc->id}}"  tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                        <div class="modal-dialog modal-dialog-centered">
-                                                            <div class="modal-content">
-                                                                <div class="modal-body p-0">
-                                                                    <img src="{{asset('assets/images/miscellaneous/'.$misc->invoice_img)}}" width="60" class="rounded w-100" alt="">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @else
-                                                    <span class="fw-bold">-</span>
-                                                @endif
-                                            </td>
-                                            <td>
-                                                {{-- ! Update ! --}}
-                                                <button type="button" class="btn btn-warning text-dark" data-bs-toggle="modal" data-bs-target="#editingborder_{{$misc->id}}">
-                                                    <i class="fa-solid fa-pen"></i>
-                                                </button>
-                                                <div class="modal fade" id="editingborder_{{$misc->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h1 class="modal-title fs-5 text-white" id="exampleModalLabel">تحديث {{$misc->title}}</h1>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <form action={{route('miscellaneous.update')}} method="post" enctype="multipart/form-data">
-                                                                    @csrf
-                                                                    <input type="hidden" name="id" value="{{$misc->id}}">
-                                                                    <div class="form-group">
-                                                                        <label for="category" class="text-muted">التصنيف</label>
-                                                                        <select name="category" class="form-select text-muted" id="category" data-misc-id={{$misc->id}}>
-                                                                            <option selected>إختر التصنيف</option>
-                                                                            <option value="كهرباء" {{$misc->category === 'كهرباء' ? 'selected' : ''}}>كهرباء</option>
-                                                                            <option value="مياه" {{$misc->category === 'مياه' ? 'selected' : ''}}>مياه</option>
-                                                                            <option value="غاز" {{$misc->category === 'غاز' ? 'selected' : ''}}>غاز</option>
-                                                                            <option value="تلفون ارضي" {{$misc->category === 'تلفون ارضي' ? 'selected' : ''}}>تلفون ارضي</option>
-                                                                            <option value="انترنت ارضي" {{$misc->category === 'انترنت ارضي' ? 'selected' : ''}}>انترنت ارضي</option>
-                                                                            <option value="أخرى" {{$misc->category === 'أخرى' ? 'selected' : ''}}>أخرى</option>
-                                                                        </select>
-                                                                        @if ($misc->category === 'أخرى')
-                                                                            <input type="text" name="other_category" placeholder="تصنيف أخر" id="other_category" class="form-control text-muted mt-3" data-misc-id={{$misc->id}} value="{{$misc->other_category}}">
-                                                                        @else
-                                                                            <input type="text" name="other_category" placeholder="تصنيف أخر" id="other_category" class="form-control text-muted mt-3" data-misc-id={{$misc->id}} disabled>
-                                                                        @endif
-                                                                    </div>
-                                                                    <div class="form-group">
-                                                                        <label for="amount" class="text-muted">المبلغ</label>
-                                                                        <input type="number" class="form-control text-muted" value="{{$misc->amount}}" id="amount" name="amount" placeholder="المبلغ">
-                                                                    </div>
-                                                                    <div class="form-group">
-                                                                        <label for="invoice_img" class="text-muted">صورة الايصال</label>
-                                                                        <input type="file" id="invoice_img" class="form-control text-muted" value="{{$misc->invoice_img}}" name="invoice_img" accept="image/*">
-                                                                    </div>
-                                                                    <div class="modal-footer">
-                                                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                                                                        <button type="submit" role="button" class="btn btn-primary">تأكيد</button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {{-- ! Delete ! --}}
-                                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleting_{{$misc->id}}">
-                                                    <i class="fa-solid fa-trash"></i>
-                                                </button>
-                                                <div class="modal fade" id="deleting_{{$misc->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h1 class="modal-title fs-5 text-white" id="exampleModalLabel">حذف المقبره {{$misc->title}}</h1>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <form action={{route('miscellaneous.delete', $misc->id)}} method="post">
-                                                                    @csrf
-                                                                    @method('DELETE')
-                                                                    <div class="form-title text-center">
-                                                                        <h1 class="text-white">هل أنت متأكد من الحذف</h1>
-                                                                    </div>
-                                                                    <div class="modal-footer">
-                                                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                                                                        <button type="submit" role="button" class="btn btn-primary">تأكيد</button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+@push('modals')
+    <x-nb.modal id="misc-add" title="إضافة فاتورة جديدة" icon="plus" :action="route('miscellaneous.store')" files submit="حفظ الفاتورة">
+        <div class="nb-form-grid">
+            <x-nb.field label="التصنيف" name="category" type="select" :options="$categories" required />
+            <x-nb.field label="المبلغ" name="amount" type="number" min="1" inputmode="numeric" required />
+            <div class="nb-span-full" data-nb-when="category:أخرى"><x-nb.field label="التصنيف الأخر" name="other_category" placeholder="مثلاً: صيانة سماعات القاعة" /></div>
+            <x-nb.field label="صورة الفاتورة / الإيصال" name="invoice_img" type="file" accept="image/*" required span="full" />
+            <div class="nb-alert nb-alert--gold nb-span-full"><i data-feather="info"></i><span>المبلغ هيتخصم من الخزنة أول ما تحفظ.</span></div>
         </div>
-    </section>
-@endsection
+    </x-nb.modal>
+
+    @foreach ($miscellaneous as $misc)
+        <x-nb.modal :id="'misc-edit-'.$misc->id" :title="'تعديل فاتورة '.$misc->category" icon="edit-2" :action="route('miscellaneous.update')" files>
+            <input type="hidden" name="id" value="{{ $misc->id }}">
+            <div class="nb-form-grid">
+                <x-nb.field label="التصنيف" name="category" type="select" :options="$categories" :value="$misc->category" :row="$misc->id" required />
+                <x-nb.field label="المبلغ" name="amount" type="number" min="1" inputmode="numeric" :value="$misc->amount" :row="$misc->id" required />
+                <div class="nb-span-full" data-nb-when="category:أخرى"><x-nb.field label="التصنيف الأخر" name="other_category" :value="$misc->other_category" :row="$misc->id" /></div>
+                <x-nb.field label="صورة جديدة (اختياري)" name="invoice_img" type="file" accept="image/*" :row="$misc->id" span="full" />
+                <div class="nb-alert nb-alert--gold nb-span-full"><i data-feather="info"></i><span>لو غيّرت المبلغ، الفرق بيتسجل في الخزنة كحركة تعديل.</span></div>
+            </div>
+        </x-nb.modal>
+        <x-nb.confirm :id="'misc-delete-'.$misc->id" :action="route('miscellaneous.delete', $misc->id)" :message="'هتحذف فاتورة '.$misc->category.' بمبلغ '.number_format($misc->amount).' ج.م؟'">
+            <span class="nb-muted">المبلغ هيرجع للخزنة.</span>
+        </x-nb.confirm>
+    @endforeach
+@endpush

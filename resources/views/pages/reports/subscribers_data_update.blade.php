@@ -1,113 +1,111 @@
+@php
+    $bySsn = \App\Models\Subscribers::whereIn('ssn', $ocr->pluck('nid')->filter())->get()->keyBy(fn ($m) => (string) $m->ssn);
+    $compare = [['name', 'name', 'الاسم'], ['address', 'address', 'العنوان'], ['birth_date', 'birthdate', 'تاريخ الميلاد']];
+@endphp
 @extends('layouts.master')
-@section('title', 'تقارير بيانات الاعضاء التي يجب تحديثها')
-@section('breadcrumb-title')
-    <h3>تقارير بيانات الاعضاء التي يجب تحديثها</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">التقارير</li>
-    <li class="breadcrumb-item active">تقارير بيانات الاعضاء التي يجب تحديثها</li>
-@endsection
+@section('title', 'بيانات للمراجعة')
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
-                        <table class="table display align-middle text-center table-hover partial-data" id="table" data-order='[[ 1, "desc" ]]' data-page-length='10'>
-                            <thead>
-                                <tr>
-                                    <th class="text-center">إسم العضو</th>
-                                    <th class="text-center">رقم العضوية</th>
-                                    <th class="text-center">رقم المحمول</th>
-                                    <th class="text-center">الرقم القومي</th>
-                                    <th class="text-center">العنوان</th>
-                                    <th class="text-center">تاريخ الميلاد</th>
-                                    <th class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($data as $item)
-                                    <tr id="row_{{ $item->id }}">
-                                        <td class="text-center">{{$item->name}}</td>
-                                        <td class="text-center">{{$item->member_id ?? '-'}}</td>
-                                        <td class="text-center">{{$item->mobile_no ?? '-'}}</td>
-                                        <td class="text-center">{{$item->ssn ?? '-'}}</td>
-                                        <td class="text-center">{{$item->address ?? '-'}}</td>
-                                        <td class="text-center">{{$item->birthdate ?? '-'}}</td>
-                                        <td class="text-center">
-                                            @if ($item->member_id)
-                                                <form action="{{ route('search.approve') }}" method="POST" class="searchedForm" data-form-id="{{$item->id}}">
-                                                    @csrf
-                                                    <input type="hidden" name="member_id" value="{{$item->member_id}}">
-                                                    <input type="hidden" name="mobile_no" value="{{$item->mobile_no}}">
-                                                    <input type="hidden" name="ssn" value="{{$item->ssn}}">
-                                                    <input type="hidden" name="address" value="{{$item->address}}">
-                                                    <input type="hidden" name="birthdate" value="{{$item->birthdate}}">
-                                                    <button type="submit" class="border-0 bg-transparent text-success approve-request" data-approve-id="{{$item->id}}" title="موافقة">
-                                                        <i class="fa-solid fa-check fs-5"></i>
-                                                    </button>
-                                                </form>
-                                            @endif
-                                            @if (empty($item->member_id))
-                                                -
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3 text-center text-white text-decoration-underline text">بيانات ال OCR</h5>
-                        <table class="table display align-middle text-center table-hover partial-data" id="ocr_table" data-order='[[ 1, "desc" ]]' data-page-length='10'>
-                            <thead>
-                                <tr>
-                                    <th class="text-center">إسم العضو</th>
-                                    <th class="text-center">رقم المحمول</th>
-                                    <th class="text-center">الرقم القومي</th>
-                                    <th class="text-center">العنوان</th>
-                                    <th class="text-center">تاريخ الميلاد</th>
-                                    <th class="text-center">إجراءات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($ocr as $item)
-                                    <tr id="row_{{ $item->id }}">
-                                        <td class="text-center">{{$item->name}}</td>
-                                        <td class="text-center">{{$item->mobile ?? '-'}}</td>
-                                        <td class="text-center">{{$item->nid ?? '-'}}</td>
-                                        <td class="text-center">{{$item->address ?? '-'}}</td>
-                                        <td class="text-center">{{$item->birth_date ?? '-'}}</td>
-                                        <td class="text-center">
+    <x-nb.page title="بيانات أعضاء للمراجعة" subtitle="تعديلات جاية من بحث الموقع، وبيانات بطاقات اتقرت بالـ OCR" :crumbs="['التقارير']" />
 
-                                            <form action="{{ route('reports.search.approve', $item->id) }}" method="POST">
-                                                @csrf
-                                                <input type="hidden" name="name" value="{{$item->name}}">
-                                                <input type="hidden" name="mobile" value="{{$item->mobile}}">
-                                                <input type="hidden" name="nid" value="{{$item->nid}}">
-                                                <input type="hidden" name="address" value="{{$item->address}}">
-                                                <input type="hidden" name="birthdate" value="{{$item->birth_date}}">
-                                                <button type="submit" class="border-0 bg-transparent text-success" title="موافقة">
-                                                    <i class="fa-solid fa-check fs-5"></i>
-                                                </button>
-                                            </form>
-                                            <form action="{{route('search.ocr.delete', $item->id)}}" method="post" class="d-inline" onsubmit="return confirm('حذف بيانات البطاقة؟')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-outline-danger d-flex align-items-center justify-content-center p-2">
-                                                    <span data-feather="trash" class="m-0 p-0"></span>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <section class="nb-card">
+        <div class="nb-tabs" data-nb-tabs role="tablist">
+            <button type="button" class="is-on" data-nb-tab="#review-site" role="tab"><i data-feather="globe"></i>من الموقع <em>{{ $data->count() }}</em></button>
+            <button type="button" data-nb-tab="#review-ocr" role="tab"><i data-feather="credit-card"></i>بطاقات (OCR) <em>{{ $ocr->count() }}</em></button>
         </div>
-    </div>
+
+        <div id="review-site" role="tabpanel">
+            @if ($data->isEmpty())
+                <x-nb.empty icon="check-circle" title="مفيش بيانات من الموقع مستنية" />
+            @else
+                <x-nb.table id="site-table" :order="[[0, 'asc']]">
+                    <thead><tr><th>العضو</th><th>رقم العضوية</th><th>رقم المحمول</th><th>الرقم القومي</th><th>العنوان</th><th>تاريخ الميلاد</th><th class="no-sort is-actions"></th></tr></thead>
+                    <tbody>
+                        @foreach ($data as $item)
+                            <tr>
+                                <td class="nb-strong">{{ $item->name }}</td>
+                                <td class="nb-num">{{ $item->member_id ?? '—' }}</td>
+                                <td class="nb-num" dir="ltr">{{ $item->mobile_no ?? '—' }}</td>
+                                <td class="nb-num">{{ $item->ssn ?? '—' }}</td>
+                                <td>{{ $item->address ?? '—' }}</td>
+                                <td class="nb-num">{{ $item->birthdate ?? '—' }}</td>
+                                <td class="is-actions">
+                                    <div class="nb-row-actions">
+                                        @if ($item->member_id)
+                                            <form action="{{ route('search.approve') }}" method="POST" data-nb-ajax data-nb-remove="tr">
+                                                @csrf
+                                                <input type="hidden" name="member_id" value="{{ $item->member_id }}">
+                                                <input type="hidden" name="mobile_no" value="{{ $item->mobile_no }}">
+                                                <input type="hidden" name="ssn" value="{{ $item->ssn }}">
+                                                <input type="hidden" name="address" value="{{ $item->address }}">
+                                                <input type="hidden" name="birthdate" value="{{ $item->birthdate }}">
+                                                <x-nb.icon-button type="submit" icon="check" label="موافقة وتحديث الملف" />
+                                            </form>
+                                        @endif
+                                        <x-nb.icon-button icon="trash-2" label="حذف" tone="danger" :open="'#site-delete-'.$item->id" />
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </x-nb.table>
+            @endif
+        </div>
+
+        <div id="review-ocr" role="tabpanel" hidden>
+            @if ($ocr->isEmpty())
+                <x-nb.empty icon="check-circle" title="مفيش بطاقات مستنية" />
+            @else
+                <div class="nb-list">
+                    @foreach ($ocr as $item)
+                        @php($member = $bySsn[(string) $item->nid] ?? null)
+                        <div class="nb-list__row" style="align-items: flex-start">
+                            <x-nb.avatar :name="$item->name" />
+                            <div class="nb-list__main">
+                                <strong>{{ $member?->name ?? $item->name }} @if ($member)<span class="nb-muted">· عضوية {{ $member->member_id }}</span>@else<x-nb.badge tone="terra">مش لاقيين عضو بالرقم القومي ده</x-nb.badge>@endif</strong>
+                                <span class="nb-num">الرقم القومي {{ $item->nid ?? '—' }}</span>
+                                <div class="nb-stack-sm" style="margin-top: 8px">
+                                    @foreach ($compare as [$ocrField, $memberField, $label])
+                                        @php($fromCard = $item->{$ocrField})
+                                        @php($onFile = $member?->{$memberField})
+                                        @continue(blank($fromCard))
+                                        <div class="nb-row" style="flex-wrap: nowrap; align-items: baseline">
+                                            <span class="nb-label" style="width: 100px; flex: none">{{ $label }}</span>
+                                            @if ((string) $fromCard === (string) $onFile)
+                                                <span>{{ $fromCard }}</span><x-nb.badge tone="green">مطابق</x-nb.badge>
+                                            @else
+                                                <span class="nb-muted" style="text-decoration: line-through">{{ filled($onFile) ? $onFile : '—' }}</span>
+                                                <i data-feather="arrow-left" class="nb-muted"></i>
+                                                <span class="nb-in">{{ $fromCard }}</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div class="nb-row">
+                                <form action="{{ route('reports.search.approve', $item->id) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="name" value="{{ $item->name }}">
+                                    <input type="hidden" name="mobile" value="{{ $item->mobile }}">
+                                    <input type="hidden" name="nid" value="{{ $item->nid }}">
+                                    <input type="hidden" name="address" value="{{ $item->address }}">
+                                    <input type="hidden" name="birthdate" value="{{ $item->birth_date }}">
+                                    <x-nb.button type="submit" size="sm" icon="check" :disabled="! $member">اعتماد</x-nb.button>
+                                </form>
+                                <x-nb.button size="sm" variant="ghost" icon="trash-2" class="nb-out" :open="'#ocr-delete-'.$item->id">حذف</x-nb.button>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
 @endsection
+
+@push('modals')
+    @foreach ($data as $item)
+        <x-nb.confirm :id="'site-delete-'.$item->id" :action="route('search.delete', $item->id)" :message="'هتحذف طلب '.$item->name.'؟'" />
+    @endforeach
+    @foreach ($ocr as $item)
+        <x-nb.confirm :id="'ocr-delete-'.$item->id" :action="route('search.ocr.delete', $item->id)" :message="'هتحذف بيانات بطاقة '.$item->name.'؟'" />
+    @endforeach
+@endpush

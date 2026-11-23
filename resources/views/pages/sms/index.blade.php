@@ -1,386 +1,196 @@
 @extends('layouts.master')
 @section('title', 'الرسائل')
-@section('breadcrumb-title')
-    <h3>الرسائل</h3>
+@section('content')
+    <x-nb.page title="رسالة عزاء" subtitle="املا البيانات والرسالة بتتكتب لوحدها، وبتتبعت لكل المشتركين في الرسائل" :crumbs="['التواصل']">
+        <x-slot:actions>
+            <x-nb.button variant="ghost" icon="smartphone" :href="route('sms.createNew')">مشتركي الرسائل</x-nb.button>
+            <x-nb.button variant="ghost" icon="upload" open="#sms-bulk">مشتركين بالجملة</x-nb.button>
+            <x-nb.button variant="ghost" icon="sliders" open="#sms-fees">رسوم الاشتراك</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            <x-nb.stat label="أعضاء مشتركين" :value="number_format($members)" icon="users" />
+            <x-nb.stat label="غير أعضاء مشتركين" :value="number_format($nonMembers)" icon="user" tone="gold" />
+            <x-nb.stat label="المبلغ المحصل" :value="number_format($totalAmount)" unit="ج.م" icon="dollar-sign" tone="green" :note="'الرسوم '.number_format($fees?->amount ?? 0).' ج.م'" />
+            <x-nb.stat label="الرصيد المتبقي" value="…" unit="رسالة" icon="message-square" main id="sms-balance-card" />
+        </x-nb.stats>
+
+        <form id="sms-form" class="nb-split" style="grid-template-columns: minmax(0, 1fr) 380px" novalidate>
+            <x-nb.card title="بيانات الرسالة" icon="feather">
+                <div class="nb-form-grid" style="--cols: 2">
+                    <x-nb.section icon="user">المتوفي</x-nb.section>
+                    <x-nb.field label="اسم المتوفي (ثلاثي)" name="deceased_name" id="name" placeholder="محمد أحمد محمود" required data-sms />
+                    <x-nb.choice label="جنس المتوفي" name="gender" :options="['توفي' => 'ذكر', 'توفيت' => 'أنثى']" value="توفي" data-sms />
+                    <x-nb.choice label="مكان الوفاة" name="death_place" :options="['بالمنزل' => 'المنزل', 'بمستشفى' => 'المستشفى']" value="بالمنزل" data-sms />
+                    <x-nb.field label="عنوان مكان الوفاة" name="death_address" id="death_address" placeholder="مثلاً: بعين شمس" data-sms />
+
+                    <x-nb.section icon="map-pin">الجنازة والدفن</x-nb.section>
+                    <x-nb.choice label="وقت صلاة الجنازة" name="prayer_time" span="full" data-sms
+                                 :options="['عقب صلاة الظهر' => 'الظهر', 'عقب صلاة الجمعة' => 'الجمعة', 'عقب صلاة العصر' => 'العصر', 'عقب صلاة المغرب' => 'المغرب', 'عقب صلاة العشاء' => 'العشاء']" value="عقب صلاة العصر" />
+                    <x-nb.field label="مكان صلاة الجنازة" name="mosque_name" id="mosque_name" placeholder="مسجد النور" data-sms />
+                    <x-nb.field label="مكان الدفن" name="burial_place" id="burial_place" type="select" :options="['اكتوبر', 'الفيوم', 'مايو', 'القطامية', 'الغفير', 'زينهم', 'العين السخنة']" data-sms />
+
+                    <x-nb.section icon="home">العزاء</x-nb.section>
+                    <label class="nb-check nb-span-full"><input type="checkbox" id="has_condolence" checked data-sms> يوجد عزاء</label>
+                    <div class="nb-span-full nb-stack-sm" id="condolence_options">
+                        <div class="nb-row">
+                            <label class="nb-check"><input type="checkbox" id="men" checked data-sms> عزاء الرجال بالمقر</label>
+                            <div class="nb-chips" id="men_days" style="margin-inline-start: 12px">
+                                @foreach (['اليوم', 'السبت', 'الأحد', 'الاثنين', 'الأربعاء'] as $day)
+                                    <label class="nb-check nb-chip"><input type="checkbox" class="day-check" value="{{ $day }}" data-sms>{{ $day }}</label>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="nb-row">
+                            <label class="nb-check"><input type="checkbox" id="women" data-sms> عزاء السيدات</label>
+                            <div id="women_text" style="flex: 1; min-width: 220px" hidden>
+                                <input type="text" id="women_condolence_text" class="nb-input" placeholder="مثال: يوم السبت فقط" data-sms>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </x-nb.card>
+
+            <div class="nb-stack">
+                <section class="nb-card" style="padding: 18px">
+                    <div style="background: var(--nb-ink); border-radius: 36px; padding: 12px">
+                        <div style="background: #F2EEE6; border-radius: 26px; padding: 18px 16px; min-height: 300px">
+                            <div class="nb-muted" style="text-align: center; font-size: 12px; margin-bottom: 10px"><strong style="display: block; color: var(--nb-ink); font-size: 14px">ADENDAN</strong>رسالة نصية</div>
+                            <div id="sms-preview" style="background: #FFFFFF; border-radius: 16px 16px 16px 4px; padding: 12px 14px; line-height: 1.9; box-shadow: 0 1px 2px rgba(0,0,0,.06)">—</div>
+                        </div>
+                    </div>
+                    <div class="nb-field" style="margin-top: 14px">
+                        <label class="nb-label" for="msg_content">نص الرسالة (تقدر تعدّله)</label>
+                        <textarea id="msg_content" class="nb-input" rows="4" required></textarea>
+                        <span class="nb-hint" id="sms-counter"><span id="char_count">0</span> حرف · <span id="sms_count">1</span> رسالة لكل مشترك</span>
+                    </div>
+                    <button type="submit" class="nb-btn nb-btn--lg nb-btn--block" style="margin-top: 12px" id="sms-send"><i data-feather="send"></i>إرسال لكل المشتركين</button>
+                </section>
+            </div>
+        </form>
+
+        <x-nb.card title="الرسائل اللي اتبعتت" icon="clock" flush>
+            @if ($sms->isEmpty())
+                <x-nb.empty icon="message-square" title="لسه مفيش رسائل" />
+            @else
+                <x-nb.table id="sms-log" :order="[[0, 'desc']]">
+                    <thead><tr><th>التاريخ</th><th>الرسالة</th><th>الحالة</th></tr></thead>
+                    <tbody>
+                        @foreach ($sms as $item)
+                            <tr>
+                                <td class="nb-num nb-nowrap" data-order="{{ $item->created_at }}">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
+                                <td style="min-width: 380px; line-height: 1.8">{{ $item->message }}</td>
+                                <td><x-nb.badge :tone="$item->sent_status === 'sent' ? 'green' : 'gold'">{{ $item->sent_status === 'sent' ? 'اتبعتت' : $item->sent_status }}</x-nb.badge></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </x-nb.table>
+            @endif
+        </x-nb.card>
+    </div>
 @endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item active">الرئيسية</li>
-    <li class="breadcrumb-item active">الرسائل</li>
-@endsection
-@section('script')
+
+@push('modals')
+    <x-nb.modal id="sms-bulk" title="إضافة مشتركين بالجملة" icon="upload" :action="route('sms.bulkstore')" files submit="رفع الملف">
+        <x-nb.field label="ملف الإكسل" name="import-subscriber" type="file" accept=".xlsx,.xls" required />
+    </x-nb.modal>
+    <x-nb.modal id="sms-fees" title="رسوم اشتراك الرسائل" icon="sliders" size="sm" :action="route('sms.updateFees')" submit="حفظ الرسوم">
+        <x-nb.field label="المبلغ (ج.م)" name="amount" type="number" min="0" :value="$fees?->amount ?? 0" required />
+    </x-nb.modal>
+    <x-nb.modal id="sms-result" title="نتيجة الإرسال" icon="send" size="sm">
+        <div class="nb-stats" style="grid-template-columns: 1fr 1fr">
+            <x-nb.stat label="اتبعتت" value="0" icon="check-circle" tone="green" id="sms-ok" />
+            <x-nb.stat label="فشلت" value="0" icon="x-circle" tone="terra" id="sms-failed" />
+        </div>
+        <x-slot:footer>
+            <button type="button" class="nb-btn nb-btn--ghost" data-nb-close>إغلاق</button>
+            <button type="button" class="nb-btn nb-btn--gold" id="sms-retry" hidden>إعادة الإرسال للي فشلوا</button>
+        </x-slot:footer>
+    </x-nb.modal>
+@endpush
+
+@push('scripts')
     <script>
-        window.smsRoutes = {
-            storeMsg: "{{ route('sms.storeMsg') }}",
-            balance:  "{{ route('sms.balance') }}"
-        };
-        window.csrfToken = "{{ csrf_token() }}";
-        window.arabicOnly = function (input) {
-            input.value = input.value.replace(/[^\u0600-\u06FF\s]/g, '');
-        };
-        function toggleCondolence() {
-            const show = document.getElementById('has_condolence').checked;
-            document.getElementById('condolence_options').style.display = show ? 'block' : 'none';
-            buildMsg();
-        }
-        function getSelectedDays() {
-            const checked = document.querySelectorAll('.day-check:checked');
-            return Array.from(checked).map(el => el.value);
-        }
-        window.buildMsg = function () {
-            const gender    = document.getElementById('gender').value;
-            const name      = document.getElementById('name').value.trim();
-            const dPlace    = document.getElementById('death_place').value;
-            const dAddr     = document.getElementById('death_address').value.trim();
-            const prayer    = document.getElementById('prayer_time').value;
-            const burial    = document.getElementById('burial_place').value.trim();
-            const hasCond   = document.getElementById('has_condolence').checked;
-            const men       = document.getElementById('men').checked;
-            const women     = document.getElementById('women').checked;
-            const days      = window.getSelectedDays();
-            const womenText = document.getElementById('women_condolence_text').value.trim();
-            const mosque    = document.getElementById('mosque_name').value;
-            document.getElementById('men_days').style.display   = men   ? 'block' : 'none';
-            document.getElementById('women_text').style.display = women ? 'block' : 'none';
-            if (!name) {
-                // document.getElementById('sms_preview').textContent = '—';
-                document.querySelector('.sms_preview').textContent = '—';
-                window.updateCounter('');
-                return;
+        (function () {
+            const $ = (id) => document.getElementById(id);
+            const routes = { send: @json(route('sms.storeMsg')), balance: @json(route('sms.balance')) };
+            const token = document.querySelector('meta[name="csrf-token"]').content;
+            const value = (name) => (document.querySelector(`input[name="${name}"]:checked`) || {}).value || '';
+            let failed = [];
+
+            function count(msg) {
+                const len = msg.length;
+                const parts = len <= 70 ? 1 : Math.ceil((len - 70) / 67) + 1;
+                $('char_count').textContent = len;
+                $('sms_count').textContent = parts;
             }
-            let msg = `${gender} ${name} ${dPlace}`;
-            if (dAddr) msg += ` ${dAddr}`;
-            msg += ` و صلاة الجنازة ${prayer}`;
-            if (mosque) msg += ` بـ${mosque}`;
-            if (burial) msg += `والدفن ب${burial}`;
-            if (!hasCond) {
-                msg += ' ولا يوجد عزاء للرجال ولا للسيدات';
-            } else {
-                if (men && women) {
-                    let menText = ' وعزاء الرجال';
-                    if (days.length > 0) menText += ` ${days.join(' و')} بالمقر`;
-                    else menText += ' بالمقر';
-                    msg += menText;
-                    if (womenText) msg += ` وعزاء السيدات ${womenText}`;
-                } else if (men && !women) {
-                    let menText = ' وعزاء الرجال';
-                    if (days.length > 0) menText += ` ${days.join(' و')} بالمقر`;
-                    else menText += ' بالمقر';
-                    msg += `${menText} ولا عزاء للسيدات`;
-                } else if (women && !men) {
-                    if (womenText) msg += ` وعزاء السيدات ${womenText} ولا عزاء للرجال`;
-                } else {
-                    msg += ' وعزاء';
+
+            // Same wording as before: "توفي فلان بالمنزل ... و صلاة الجنازة ... والدفن ب... وعزاء الرجال ... بالمقر"
+            function build() {
+                const name = $('name').value.trim();
+                const hasCond = $('has_condolence').checked, men = $('men').checked, women = $('women').checked;
+                const days = [...document.querySelectorAll('.day-check:checked')].map((el) => el.value);
+                const womenText = $('women_condolence_text').value.trim();
+                $('condolence_options').hidden = !hasCond;
+                $('men_days').hidden = !men;
+                $('women_text').hidden = !women;
+                if (!name) { $('sms-preview').textContent = '—'; $('msg_content').value = ''; count(''); return; }
+                let msg = `${value('gender')} ${name} ${value('death_place')}`;
+                const addr = $('death_address').value.trim();
+                if (addr) msg += ` ${addr}`;
+                msg += ` و صلاة الجنازة ${value('prayer_time')}`;
+                const mosque = $('mosque_name').value.trim();
+                if (mosque) msg += ` بـ${mosque}`;
+                const burial = $('burial_place').value;
+                if (burial) msg += ` والدفن ب${burial}`;
+                const menText = ' وعزاء الرجال' + (days.length ? ` ${days.join(' و')} بالمقر` : ' بالمقر');
+                if (!hasCond) msg += ' ولا يوجد عزاء للرجال ولا للسيدات';
+                else if (men && women) msg += menText + (womenText ? ` وعزاء السيدات ${womenText}` : '');
+                else if (men) msg += `${menText} ولا عزاء للسيدات`;
+                else if (women) msg += womenText ? ` وعزاء السيدات ${womenText} ولا عزاء للرجال` : '';
+                $('sms-preview').textContent = msg;
+                $('msg_content').value = msg;
+                count(msg);
+            }
+            document.querySelectorAll('[data-sms]').forEach((el) => el.addEventListener(el.type === 'text' ? 'input' : 'change', build));
+            $('msg_content').addEventListener('input', (e) => { $('sms-preview').textContent = e.target.value || '—'; count(e.target.value); });
+            build();
+
+            async function send(numbers) {
+                const content = $('msg_content').value.trim();
+                if (!content) { nbToast('اكتب اسم المتوفي الأول', 'warning'); return; }
+                const button = $('sms-send');
+                button.disabled = true;
+                button.lastChild.textContent = 'جاري الإرسال…';
+                try {
+                    const res = await fetch(routes.send, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': token },
+                        body: JSON.stringify(numbers ? { content, numbers } : { content }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message || 'حصلت مشكلة في الإرسال');
+                    failed = data.failed_numbers || [];
+                    document.querySelector('#sms-ok .nb-stat__value').textContent = data.success_count ?? 0;
+                    document.querySelector('#sms-failed .nb-stat__value').textContent = data.failed_count ?? 0;
+                    $('sms-retry').hidden = !failed.length;
+                    nbModal.open('#sms-result');
+                } catch (err) {
+                    nbToast(err.message, 'error');
+                } finally {
+                    button.disabled = false;
+                    button.lastChild.textContent = 'إرسال لكل المشتركين';
                 }
             }
-            // document.getElementById('sms_preview').textContent = msg;
-            document.querySelector('.sms_preview').textContent = msg;
-            document.getElementById('msg_content').value = msg;
-            window.updateCounter(msg);
-        }
-        function updateCounter(msg) {
-            const len = msg.length;
-            const sms = len <= 70 ? 1 : len <= 134 ? 2 : 3;
+            $('sms-form').addEventListener('submit', (e) => { e.preventDefault(); send(null); });
+            $('sms-retry').addEventListener('click', () => { nbModal.close('#sms-result'); send(failed); });
 
-            document.getElementById('char_count').textContent = len;
-            document.getElementById('sms_count').textContent  = sms;
-
-            const counter = document.getElementById('sms_counter');
-            counter.className = len > 134 ? 'text-danger' : 'text-muted';
-        }
+            fetch(routes.balance, { headers: { Accept: 'application/json' } })
+                .then((r) => r.ok ? r.json() : Promise.reject())
+                .then((d) => { document.querySelector('#sms-balance-card .nb-stat__value').firstChild.textContent = Number(d.balance || 0).toLocaleString('en-US'); })
+                .catch(() => { document.querySelector('#sms-balance-card .nb-stat__value').firstChild.textContent = 'غير متاح'; });
+        })();
     </script>
-    <script src="{{asset('assets/js/sms.js')}}"></script>
-@endsection
-@section('modals')
-    <button type="button" class="btn btn-success" title="إضافة مشتركين بالجملة" data-bs-toggle="modal" data-bs-target="#add_new">مشتركين بالجملة</button>
-    <div class="modal fade" id="add_new" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">إضافة مشتركين بالجملة</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="{{route('sms.bulkstore')}}" method="post" enctype="multipart/form-data">
-                        @csrf
-                        <div class="form-group">
-                            <input type="file" class="form-control" name="import-subscriber" accept=".xlsx, .xls">
-                        </div>
-                        <button class="btn btn-success fw-bold text-white mt-3 w-100" type="submit">تسجيل البيانات</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <button type="button" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#send_msg">إرسال رسالة</button>
-    <div class="modal fade" id="send_msg" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">إرسال رسالة</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="smsForm" method="post">
-                        @csrf
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="form-group">
-                                    <label for="name" class="form-label text-muted">اسم المتوفي (ثلاثي)</label>
-                                    <input type="text" id="name" class="form-control" placeholder="محمد احمد محمود" pattern="[\u0600-\u06FF\s]+" oninput="arabicOnly(this); buildMsg()">
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-group">
-                                    <label for="gender" class="form-label text-muted">جنس المتوفي</label>
-                                    <select id="gender" class="form-control" onchange="buildMsg()">
-                                        <option disabled>— اختر —</option>
-                                        <option value="توفي">ذكر</option>
-                                        <option value="توفيت">أنثى</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-group">
-                                    <label for="death_place" class="form-label text-muted">مكان الوفاة</label>
-                                    <select id="death_place" class="form-control" onchange="buildMsg()">
-                                        <option disabled>— اختر —</option>
-                                        <option value="بالمنزل">المنزل</option>
-                                        <option value="بمستشفى">المستشفى</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-group">
-                                    <label for="death_address" class="form-label text-muted">عنوان مكان الوفاة</label>
-                                    <input type="text" id="death_address" class="form-control" placeholder="عنوان مكان الوفاة" oninput="buildMsg()">
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-group">
-                                    <label for="prayer_time" class="form-label text-muted">وقت صلاة الجنازة</label>
-                                    <select id="prayer_time" class="form-control" onchange="buildMsg()">
-                                        <option disabled>— اختر —</option>
-                                        <option value="عقب صلاة الظهر">الظهر</option>
-                                        <option value="عقب صلاة الجمعة">الجمعة</option>
-                                        <option value="عقب صلاة العصر">العصر</option>
-                                        <option value="عقب صلاة المغرب">المغرب</option>
-                                        <option value="عقب صلاة العشاء">العشاء</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-group">
-                                    <label for="burial_place" class="form-label text-muted">مكان الدفن</label>
-                                    <select id="burial_place" class="form-control" onchange="buildMsg()">
-                                        <option disabled>— اختر —</option>
-                                        <option value="اكتوبر">اكتوبر</option>
-                                        <option value="الفيوم">الفيوم</option>
-                                        <option value="مايو">مايو</option>
-                                        <option value="القطامية">القطامية</option>
-                                        <option value="الغفير">الغفير</option>
-                                        <option value="زينهم">زينهم</option>
-                                        <option value="العين السخنة">العين السخنة</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" id="has_condolence" onchange="toggleCondolence()">
-                                    <label class="form-check-label text-muted" for="has_condolence">يوجد عزاء</label>
-                                </div>
-                                <div id="condolence_options" style="display:none; padding-right: 1.5rem; margin-top: 10px;">
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" id="men" onchange="buildMsg()">
-                                        <label class="form-check-label text-muted" for="men">الرجال</label>
-                                    </div>
-                                    <div id="men_days" style="display:none; padding-right: 1.5rem; margin-top: 8px;">
-                                        <label class="text-muted" style="font-size: 13px;">أيام العزاء</label>
-                                        <div class="d-flex gap-3 flex-wrap mt-1">
-                                            <div class="form-check">
-                                                <input type="radio" class="form-check-input day-check" name="men_day" value="اليوم" id="day_today" onchange="buildMsg()">
-                                                <label class="form-check-label text-muted" for="day_today">اليوم</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input type="radio" class="form-check-input day-check" name="men_day" value="السبت" id="day_sat" onchange="buildMsg()">
-                                                <label class="form-check-label text-muted" for="day_sat">السبت</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input type="radio" class="form-check-input day-check" name="men_day" value="الاثنين" id="day_mon" onchange="buildMsg()">
-                                                <label class="form-check-label text-muted" for="day_mon">الاثنين</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input type="radio" class="form-check-input day-check" name="men_day" value="الأربعاء" id="day_wed" onchange="buildMsg()">
-                                                <label class="form-check-label text-muted" for="day_wed">الأربعاء</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-check mt-2">
-                                        <input type="checkbox" class="form-check-input" id="women" onchange="buildMsg()">
-                                        <label class="form-check-label text-muted" for="women">السيدات</label>
-                                    </div>
-                                    <div id="women_text" style="display:none; padding-right: 1.5rem; margin-top: 8px;">
-                                        <input type="text" id="women_condolence_text" class="form-control" placeholder="مثال: يوم السبت فقط" pattern="[\u0600-\u06FF\s]+" oninput="arabicOnly(this); buildMsg()">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="form-group">
-                                    <label for="mosque_name" class="form-label text-muted">مكان صلاة الجنازة</label>
-                                    <input type="text" id="mosque_name" name="mosque_name" class="form-control" placeholder="مسجد النور" pattern="[\u0600-\u06FF\s]+" oninput="arabicOnly(this); buildMsg()">
-                                </div>
-                            </div>
-                            <div class="col-md-12 mb-3">
-                                <label class="text-muted">معاينة الرسالة</label>
-                                <textarea name="content" id="msg_content" class="form-control sms_preview" placeholder="—"></textarea>
-                                <small id="sms_counter" class="text-muted">
-                                    <span id="char_count">0</span> / 134 حرف &nbsp;|&nbsp; <span id="sms_count">1</span> رسالة
-                                </small>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                            <button type="submit" role="button" id="associateSubmit" class="btn btn-primary">تأكيد</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <button type="button" class="btn btn-success mx-2" data-bs-toggle="modal" title="تعديل رسوم الرسالة" data-bs-target="#sms_fees">رسوم الرسالة</button>
-    <div class="modal fade" id="sms_fees" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">تعديل رسوم الرسالة</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action="{{route('sms.updateFees')}}" method="post">
-                        @csrf
-                        <div class="form-group">
-                            <label for="fees_amount" class="form-label text-muted">المبلغ (ج.م)</label>
-                            <input type="number" name="amount" id="fees_amount" class="form-control" value="{{ $fees?->amount ?? 0 }}" min="0" required>
-                        </div>
-                        <button class="btn btn-success fw-bold text-white mt-3 w-100" type="submit">تحديث الرسوم</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    <a href="{{route('sms.createNew')}}" class="btn btn-success ms-2" title="إضافة مشترك">اضافة مشترك</a>
-@endsection
-@section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-xl-4 box-col-4">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="100" height="100" src="https://img.icons8.com/3d-fluent/100/user-2.png" alt="user-2"/>
-                            </div>
-                            <div>
-                                <h5 class="text-muted fs-4">عدد الاعضاء المشتركين:</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted"> {{$members}}</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 box-col-4">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="100" height="100" src="https://img.icons8.com/3d-fluent/100/user-2.png" alt="user-2"/>
-                            </div>
-                            <div>
-                                <h5 class="text-muted fs-4">عدد الغير الاعضاء المشتركين:</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted"> {{$nonMembers}}</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 box-col-4">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="100" height="100" src="https://img.icons8.com/color/80/money-transfer.png" alt="user-2"/>
-                            </div>
-                            <div>
-                                <h5 class="text-muted fs-4">المبلغ المحصل:</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted"> {{$totalAmount}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 box-col-4">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="100" height="100" src="https://img.icons8.com/color/80/money-transfer.png" alt="user-2"/>
-                            </div>
-                            <div>
-                                <h5 class="text-muted fs-4">الرصيد المتبقي:</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted" id="balance-remining"></h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-4 box-col-4">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="100" height="100" src="https://img.icons8.com/color/80/money-transfer.png" alt="user-2"/>
-                            </div>
-                            <div>
-                                <h5 class="text-muted fs-4">الرسوم:</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted" id="fees">{{ $fees?->amount ?? 0 }} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="table-resposive">
-                            <table class="table display align-middle text-center table-hover" id="table2" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">الرسالة</th>
-                                        <th class="text-center">حالة الاشتراك</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($sms as $item)
-                                        <tr>
-                                            <td class="text-center">{{$item->message}}</td>
-                                            <td class="text-center">{{$item->sent_status}}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
+@endpush

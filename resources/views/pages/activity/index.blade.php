@@ -1,91 +1,62 @@
+@php
+    $events = ['created' => ['إضافة', 'green'], 'updated' => ['تعديل', 'gold'], 'deleted' => ['حذف', 'terra']];
+    $who = fn ($a) => $a->custom_causer ?? $a->causer?->name ?? 'السيستم';
+    $details = fn ($a) => is_array($a->properties) ? $a->properties : (json_decode((string) $a->properties, true) ?: []);
+@endphp
 @extends('layouts.master')
 @section('title', 'سجل النشاطات')
-@section('breadcrumb-title')
-    <h3>سجل النشاطات</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item active">سجل النشاطات</li>
-@endsection
-@section('script')
-    <script src="{{asset('assets/js/ajax_requests.js')}}"></script>
-@endsection
 @section('content')
-    <section class="activity-wrapper">
-        <div class="container-fluid">
-            <div class="row justify-content-center align-items-center">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table id="activity-table" class="table table-striped table-hover align-middle">
-                                    <thead>
-                                        <tr>
-                                            <th>الوصف</th>
-                                            <th>بواسطة</th>
-                                            <th>تم الإنشاء في</th>
-                                            <th>تم التحديث في</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($activities as $activity)
-                                            <tr>
-                                                <td>{{$activity->description}}</td>
-                                                <td>{{ $activity->custom_causer }}</td>
-                                                <td>{{$activity->created_at->format('Y-m-d H:i:s')}}</td>
-                                                <td>{{$activity->updated_at->format('Y-m-d H:i:s')}}</td>
-                                                <td>
-                                                    @if ($activity->event === 'updated')
-                                                        <button type="button" class="btn btn-success px-2 py-1" data-bs-toggle="modal" data-bs-target="#show_{{$activity->id}}">
-                                                            <i class="fa-regular fa-eye fs-6"></i>
-                                                        </button>
-                                                        <div class="modal fade" id="show_{{$activity->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                            <div class="modal-dialog modal-lg modal-dialog-centered">
-                                                                <div class="modal-content">
-                                                                    <div class="modal-header align-content-center">
-                                                                        <h1 class="modal-title fs-5 text-white mb-0" id="exampleModalLabel">تفاصيل التحديث</h1>
-                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                    </div>
-                                                                    <div class="modal-body">
-                                                                        @php
-                                                                            $data = json_decode($activity->properties, true);
-                                                                        @endphp
-                                                                        <div class="row align-items-center justify-content-center">
-                                                                            @foreach ($data as $section => $properties)
-                                                                                <div class="col-lg-6 col-sm-12">
-                                                                                    <div class="modal-title">
-                                                                                        <h5 class="fs-5">{{ $section }}</h5>
-                                                                                    </div>
-                                                                                    <div class="card py-3">
-                                                                                        <div class="card-body">
-                                                                                            @foreach ($properties as $property => $value)
-                                                                                                <p>
-                                                                                                    <span class="fs-5 fw-bold">{{ $property }}:</span>
-                                                                                                    <span class="fs-6">{{$value ? $value : "لا يـــوجد"}}</span>
-                                                                                                </p>
-                                                                                            @endforeach
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @else
-                                                        <span class="fw-bold">-</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+    <x-nb.page title="سجل النشاطات" subtitle="كل تعديل حصل في الداشبورد، مين عمله وإمتى" :crumbs="['الإدارة']" />
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            <x-nb.stat label="كل النشاطات" :value="number_format($activities->count())" icon="activity" />
+            <x-nb.stat label="النهارده" :value="number_format($activities->filter(fn ($a) => $a->created_at?->isToday())->count())" icon="sun" tone="gold" />
+            <x-nb.stat label="عمليات حذف" :value="number_format($activities->where('event', 'deleted')->count())" icon="trash-2" tone="terra" />
+        </x-nb.stats>
+
+        <x-nb.card title="النشاطات" icon="activity" flush>
+            <x-slot:actions>
+                <div class="nb-chips">
+                    <a href="#" class="nb-chip is-on" data-nb-filter="#activity-table" data-col="1" data-value="">الكل</a>
+                    @foreach ($events as [$label])
+                        <a href="#" class="nb-chip" data-nb-filter="#activity-table" data-col="1" data-value="{{ $label }}">{{ $label }}</a>
+                    @endforeach
                 </div>
-            </div>
-        </div>
-    </section>
+            </x-slot:actions>
+            <x-nb.table id="activity-table" :order="[[3, 'desc']]" :page-length="25">
+                <thead><tr><th>الوصف</th><th>الحدث</th><th>بواسطة</th><th>الوقت</th><th class="no-sort is-actions"></th></tr></thead>
+                <tbody>
+                    @foreach ($activities as $activity)
+                        @php([$label, $tone] = $events[$activity->event] ?? [$activity->event ?: '—', null])
+                        <tr>
+                            <td class="nb-strong" style="min-width: 320px">{{ $activity->description }}</td>
+                            <td><x-nb.badge :tone="$tone">{{ $label }}</x-nb.badge></td>
+                            <td><div class="nb-cell-main"><x-nb.avatar :name="$who($activity)" size="sm" /><span>{{ $who($activity) }}</span></div></td>
+                            <td class="nb-num nb-nowrap" data-order="{{ $activity->created_at }}">{{ $activity->created_at?->format('Y-m-d H:i') }}</td>
+                            <td class="is-actions">
+                                @if (count($details($activity)))
+                                    <button type="button" class="nb-icon-btn" data-nb-child aria-label="تفاصيل"><i data-feather="eye"></i></button>
+                                    <template>
+                                        <div class="nb-cols" style="padding: 6px 8px">
+                                            @foreach ($details($activity) as $section => $properties)
+                                                <div>
+                                                    <div class="nb-section-title">{{ ['old' => 'قبل', 'attributes' => 'بعد'][$section] ?? $section }}</div>
+                                                    <dl class="nb-kv">
+                                                        @foreach ((array) $properties as $property => $value)
+                                                            <dt>{{ $property }}</dt><dd>{{ is_scalar($value) && $value !== '' ? $value : (is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : 'لا يوجد') }}</dd>
+                                                        @endforeach
+                                                    </dl>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </template>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </x-nb.table>
+        </x-nb.card>
+    </div>
 @endsection

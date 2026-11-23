@@ -1,94 +1,55 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
     <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="">
-        <meta name="keywords" content="">
         <meta name="author" content="جمعية أدندان الخيرية">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <meta property="og:url" content="https://adendan.com/">
-        <meta property="og:title" content="جمعية أدندان الخيرية">
-        <meta property="og:description" content="جمعية أدندان الخيرية">
-        <meta property="og:image" content="{{ asset('assets/images/favicon.png') }}">
+        <meta name="robots" content="noindex, nofollow">
         <link rel="icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
-        <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
-        <title>@yield('title')</title>
-        {{-- ! Vite ! --}}
-        @vite(['resources/js/app.js', 'resources/sass/app.scss'])
+        <title>@yield('title') · جمعية أدندان الخيرية</title>
+        {{-- the icon-only sidebar is remembered per browser; set before paint so it doesn't jump --}}
+        <script>try { if (localStorage.getItem('nb-side-mini') === '1') document.documentElement.classList.add('nb-side-mini'); } catch (e) {}</script>
         @include('layouts.assets.css')
-        @yield('custom-css')
-        @yield('custom-js')
+        @stack('styles')
     </head>
-
-    <body class="dark-only rtl">
-        <div class="loader-wrapper">
-            <div class="loader-index">
-                <span></span>
-            </div>
-            <svg>
-                <defs></defs>
-                <filter id="goo">
-                    <fegaussianblur in="SourceGraphic" stddeviation="11" result="blur"></fegaussianblur>
-                    <fecolormatrix in="blur" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo"></fecolormatrix>
-                </filter>
-            </svg>
-        </div>
-        {{-- ! Tap On Top Starts ! --}}
-        <div class="tap-top">
-            <i data-feather="chevrons-up"></i>
-        </div>
-        {{-- ! Page Wrapper Start ! --}}
-        <div class="page-wrapper compact-wrapper" id="pageWrapper">
-            {{-- ! Page Header Start ! --}}
-            @include('layouts.components.header')
-            {{-- ! Page Body Start ! --}}
-            <div class="page-body-wrapper">
-                {{-- ! Page Sidebar Start ! --}}
-                @include('layouts.components.sidebar')
-                <div class="page-body">
-                    <div class="container-fluid">
-                        <div class="page-title">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    @yield('breadcrumb-title')
-                                </div>
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center justify-content-end">
-                                        @yield('modals')
-                                        <ol class="ms-3 breadcrumb">
-                                            <li class="breadcrumb-item">
-                                                <a href="{{ route('home') }}">
-                                                    <svg class="stroke-icon">
-                                                        <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use>
-                                                    </svg>
-                                                </a>
-                                            </li>
-                                            @yield('breadcrumb-items')
-                                        </ol>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {{-- ! Container-Fluid Starts ! --}}
+    <body class="nb">
+        <div class="nb-app">
+            @include('layouts.components.sidebar')
+            <div class="nb-scrim" aria-hidden="true"></div>
+            <div class="nb-main">
+                @include('layouts.components.header')
+                <main class="nb-content" id="main">
                     @yield('content')
-                </div>
-                {{-- ! Footer Start ! --}}
+                </main>
                 @include('layouts.components.footer')
             </div>
         </div>
-        {{-- ! Scripts ! --}}
-        @include('layouts.assets.script')
-        <script>
-            $.ajaxSetup({
-                headers: {
-                    "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content")
-                }
-            });
-        </script>
-    </body>
 
+        {{-- page modals sit outside the layout so they cover everything --}}
+        @stack('modals')
+
+        <div class="nb-toasts" aria-live="polite">
+            @if (session()->has('message'))
+                @php($tone = ['success' => 'success', 'error' => 'error', 'warning' => 'warning'][session('alert-type')] ?? 'info')
+                <div class="nb-toast nb-toast--{{ $tone }}" data-auto role="status">
+                    <span>{{ session('message') }}</span>
+                    <button type="button" aria-label="إغلاق">✕</button>
+                </div>
+            @endif
+            @if ($errors->any())
+                <div class="nb-toast nb-toast--error" role="alert">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" aria-label="إغلاق">✕</button>
+                </div>
+            @endif
+        </div>
+
+        @include('layouts.assets.script')
+        @stack('scripts')
+    </body>
 </html>

@@ -1,244 +1,110 @@
 @php
     $user = Auth::user();
+    $on = fn (string ...$routes) => request()->routeIs(...$routes) ? 'is-active' : '';
+    $reports = [
+        'reports.safe' => 'الخزنة',
+        'bankTransactios' => 'البنك',
+        'reports.subscriptions' => 'الإشتراكات',
+        'reports.search' => 'متأخرات الإشتراك',
+        'reports.innerDonations' => 'التبرعات الداخلية',
+        'reports.donations' => 'التبرعات الخارجية',
+        'reports.updateRequests' => 'طلبات التحديث',
+        'reports.subscribersData' => 'بيانات للمراجعة',
+        'reports.incompete' => 'البيانات الناقصة',
+        'reports.associates' => 'المنتسبين',
+        'reports.location' => 'السكن',
+        'reports.age' => 'السن',
+        'reports.jobs' => 'الوظائف',
+    ];
+    $staff = ['user.index' => 'المستخدمين', 'roles.index' => 'الأدوار', 'permissions.index' => 'الصلاحيات'];
 @endphp
-<div class="sidebar-wrapper" sidebar-layout="stroke-svg">
-    <div>
-        <div class="logo-wrapper">
-            <a href="{{ route('home') }}">
-                <h3>جمعية أدندان الخيرية</h3>
-            </a>
-            <div class="toggle-sidebar">
-                <i class="status_toggle middle sidebar-toggle" data-feather="grid"></i>
-            </div>
-        </div>
-        <div class="logo-icon-wrapper text-center mt-3 w-lg-100 p-0" style="width: 100px">
-            <a href={{route('home')}}>
-                <img class="img-fluid me-0" src="{{ asset('assets/images/logo/لوجو الجمعية.png') }}" width="70" alt="Logo">
-            </a>
-        </div>
-        <nav class="sidebar-main">
-            <div id="sidebar-menu">
-                <ul class="sidebar-links w-100" id="simple-bar">
-                    @can('لوحة التحكم')
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title" href="{{ route('home') }}">
-                                <svg class="stroke-icon">
-                                    <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use>
-                                </svg>
-                                <span>لوحة التحكم</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('الاخبار')
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title" href="{{route('news.all')}}">
-                                <svg class="stroke-icon">
-                                    <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-form') }}"></use>
-                                </svg>
-                                <span>الأخبار</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('المشتركين')
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title" href="{{route('subscriber.all')}}">
-                                <svg class="stroke-icon">
-                                    <use href="{{ asset('assets/svg/icon-sprite.svg#fill-user') }}"></use>
-                                </svg>
-                                <span>المشتركين</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('الإشتراك السنوي')
-                        <li class="sidebar-list">
-                            <a href="{{route('costyears.all')}}" class="sidebar-link sidebar-title">
-                                <i class="fa-duotone fa-rings-wedding text-muted fs-5"></i>
-                                <span>الإشتراك السنوي</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('النثريات')
-                        <li class="sidebar-list">
-                            <a class="sidebar-link sidebar-title" href="{{route('miscellaneous.all')}}">
-                                <i class="fa-solid fa-file-invoice fs-5 text-muted"></i>
-                                <span>النثريات</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('مجلس الادارة')
-                        <li class="sidebar-list">
-                            <a href="{{route('board.all')}}" class="sidebar-link sidebar-title">
-                                <svg class="stroke-icon">
-                                    <use href="{{ asset('assets/svg/icon-sprite.svg#fill-user') }}"></use>
-                                </svg>
-                                <span>مجلس الإدارة</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('اللجان')
-                        <li class="sidebar-list">
-                            <a href="{{route('association.all')}}" class="sidebar-link sidebar-title">
-                                <svg class="stroke-icon">
-                                    <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-home') }}"></use>
-                                </svg>
-                                <span>لجان الجمعية</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('الحرفيين')
-                        <li class="sidebar-list">
-                            <a href="{{route('workers.all')}}" class="sidebar-link sidebar-title">
-                                <svg class="stroke-icon">
-                                    <use href="{{ asset('assets/svg/icon-sprite.svg#fill-user') }}"></use>
-                                </svg>
-                                <span>حرفيين</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('التبرعات الخارجية')
-                        <li class="sidebar-list">
-                            <a href="{{route('donators.all')}}" class="sidebar-link sidebar-title">
-                                <svg class="stroke-icon">
-                                    <use href="{{ asset('assets/svg/icon-sprite.svg#profit') }}"></use>
-                                </svg>
-                                <span>التبرعات الخارجية</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('المقابر')
-                        <li class="sidebar-list">
-                            <a href="{{route('tomb.all')}}" class="sidebar-link sidebar-title">
-                                <i class="fa-solid fa-tombstone-blank text-muted fs-5"></i>
-                                <span>المقابر</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('الافراح')
-                        <li class="sidebar-list">
-                            <a href="{{route('weddings.all')}}" class="sidebar-link sidebar-title">
-                                <i class="fa-duotone fa-rings-wedding text-muted fs-5"></i>
-                                <span>مواعيد الأفراح</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('الرسائل')
-                        <li class="sidebar-list">
-                            <a href="{{route('sms.index')}}" class="sidebar-link sidebar-title">
-                                <i class="fa-duotone fa-solid fa-envelope text-muted fs-5"></i>
-                                <span>خدمة الرسائل</span>
-                            </a>
-                        </li>
-                    @endcan
-                    @can('التقارير')
-                        <li class="sidebar-list">
-                            <a href="#" class="sidebar-link sidebar-title">
-                                <svg class="stroke-icon">
-                                    <use href="{{ asset('assets/svg/icon-sprite.svg#stroke-form') }}"></use>
-                                </svg>
-                                <span>التقارير</span>
-                            </a>
-                            <ul class="sidebar-submenu">
-                                <li>
-                                    <a href="{{route('reports.subscriptions')}}">
-                                        <span>الإشتراكات</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.location')}}">
-                                        <span>السكن</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.age')}}">
-                                        <span>السن</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.jobs')}}">
-                                        <span>الوظائف</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.donations')}}">
-                                        <span>التبرعات الخارجية</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.innerDonations')}}">
-                                        <span>التبرعات الداخلية</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.search')}}">
-                                        <span>مستحقات الإشتراكات</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.associates')}}">
-                                        <span>المنتسبين</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.subscribersData')}}">
-                                        <span>بيانات الاعضاء المحدثة</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.incompete')}}">
-                                        <span>البيانات الغير مكتمله</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.updateRequests')}}">
-                                        <span>طلبات التحديث</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('reports.safe')}}">
-                                        <span>الخزنة</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('bankTransactios')}}">
-                                        <span>البنك</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    @endcan
-                    @if($user->hasRole('master'))
-                        <li class="sidebar-list">
-                            <a href="#" class="sidebar-link sidebar-title">
-                                <i class="fa-duotone fa-rings-wedding text-muted fs-5"></i>
-                                <span>المستخدمين</span>
-                            </a>
-                            <ul class="sidebar-submenu">
-                                <li>
-                                    <a href="{{route('user.index')}}">
-                                        <span>المستخدمين</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('roles.index')}}">
-                                        <span>الأدوار</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="{{route('permissions.index')}}">
-                                        <span>الصلاحيات</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="sidebar-list">
-                            <a href="{{route('activity.index')}}" class="sidebar-link sidebar-title">
-                                <i data-feather="log-in" class="text-white"></i>
-                                <span>سجل النشاطات</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-            </div>
-        </nav>
-    </div>
-</div>
+<aside class="nb-side" id="nb-side" aria-label="القائمة الرئيسية">
+    <a href="{{ route('home') }}" class="nb-side__brand">
+        <img src="{{ asset('assets/images/nubian/logo-arch.jpg') }}" alt="">
+        <span>
+            <strong>جمعية أدندان الخيرية</strong>
+            <small>لوحة الإدارة</small>
+        </span>
+    </a>
+    <div class="nb-border nb-side__border" aria-hidden="true"></div>
+    <nav class="nb-side__nav">
+        @can('لوحة التحكم')
+            <a class="nb-side__link {{ $on('home') }}" href="{{ route('home') }}"><i data-feather="home"></i>لوحة التحكم</a>
+        @endcan
+
+        @canany(['المشتركين', 'الإشتراك السنوي', 'التبرعات الخارجية', 'النثريات', 'التقارير'])
+            <div class="nb-side__group">الأعضاء والمالية</div>
+        @endcanany
+        @can('المشتركين')
+            <a class="nb-side__link {{ $on('subscriber.*', 'subscription.*') }}" href="{{ route('subscriber.all') }}"><i data-feather="users"></i>المشتركين</a>
+        @endcan
+        @can('الإشتراك السنوي')
+            <a class="nb-side__link {{ $on('costyears.*') }}" href="{{ route('costyears.all') }}"><i data-feather="calendar"></i>الإشتراك السنوي</a>
+        @endcan
+        @can('التبرعات الخارجية')
+            <a class="nb-side__link {{ $on('donators.*', 'outerDonations.*', 'outer_donations.*') }}" href="{{ route('donators.all') }}"><i data-feather="gift"></i>المتبرعين</a>
+        @endcan
+        @can('النثريات')
+            <a class="nb-side__link {{ $on('miscellaneous.*') }}" href="{{ route('miscellaneous.all') }}"><i data-feather="file-text"></i>النثريات</a>
+        @endcan
+        @can('التقارير')
+            <details @if (request()->routeIs('reports.*', 'bankTransactios')) open @endif>
+                <summary class="nb-side__link {{ $on('reports.*', 'bankTransactios') }}"><i data-feather="bar-chart-2"></i>التقارير<i data-feather="chevron-down" class="nb-side__chev"></i></summary>
+                <div class="nb-side__sub">
+                    @foreach ($reports as $route => $label)
+                        <a href="{{ route($route) }}" class="{{ $on($route) }}">{{ $label }}</a>
+                    @endforeach
+                </div>
+            </details>
+        @endcan
+
+        @canany(['الاخبار', 'الرسائل', 'الافراح'])
+            <div class="nb-side__group">التواصل</div>
+        @endcanany
+        @can('الرسائل')
+            <details @if (request()->routeIs('sms.*')) open @endif>
+                <summary class="nb-side__link {{ $on('sms.*') }}"><i data-feather="message-square"></i>الرسائل<i data-feather="chevron-down" class="nb-side__chev"></i></summary>
+                <div class="nb-side__sub">
+                    <a href="{{ route('sms.index') }}" class="{{ $on('sms.index') }}">إرسال رسالة</a>
+                    <a href="{{ route('sms.createNew') }}" class="{{ $on('sms.createNew') }}">مشتركي الرسائل</a>
+                </div>
+            </details>
+        @endcan
+        @can('الاخبار')
+            <a class="nb-side__link {{ $on('news.*', 'show.thumbs') }}" href="{{ route('news.all') }}"><i data-feather="book-open"></i>الأخبار</a>
+        @endcan
+        @can('الافراح')
+            <a class="nb-side__link {{ $on('weddings.*') }}" href="{{ route('weddings.all') }}"><i data-feather="heart"></i>الأفراح</a>
+        @endcan
+
+        @canany(['مجلس الادارة', 'اللجان', 'الحرفيين', 'المقابر'])
+            <div class="nb-side__group">الجمعية والدليل</div>
+        @endcanany
+        @can('مجلس الادارة')
+            <a class="nb-side__link {{ $on('board.*') }}" href="{{ route('board.all') }}"><i data-feather="award"></i>مجلس الإدارة</a>
+        @endcan
+        @can('اللجان')
+            <a class="nb-side__link {{ $on('association.*') }}" href="{{ route('association.all') }}"><i data-feather="layers"></i>اللجان</a>
+        @endcan
+        @can('المقابر')
+            <a class="nb-side__link {{ $on('tomb.*') }}" href="{{ route('tomb.all') }}"><i data-feather="moon"></i>المقابر</a>
+        @endcan
+        @can('الحرفيين')
+            <a class="nb-side__link {{ $on('workers.*') }}" href="{{ route('workers.all') }}"><i data-feather="briefcase"></i>الحرفيين</a>
+        @endcan
+
+        @if ($user->hasRole('master'))
+            <div class="nb-side__group">الإدارة</div>
+            <details @if (request()->routeIs(...array_keys($staff))) open @endif>
+                <summary class="nb-side__link {{ $on(...array_keys($staff)) }}"><i data-feather="shield"></i>المستخدمين والصلاحيات<i data-feather="chevron-down" class="nb-side__chev"></i></summary>
+                <div class="nb-side__sub">
+                    @foreach ($staff as $route => $label)
+                        <a href="{{ route($route) }}" class="{{ $on($route) }}">{{ $label }}</a>
+                    @endforeach
+                </div>
+            </details>
+            <a class="nb-side__link {{ $on('activity.*') }}" href="{{ route('activity.index') }}"><i data-feather="activity"></i>سجل النشاطات</a>
+        @endif
+    </nav>
+    <div class="nb-side__foot">في خدمة أهل أدندان منذ 1908م</div>
+</aside>

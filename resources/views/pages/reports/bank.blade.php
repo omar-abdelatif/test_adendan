@@ -1,149 +1,74 @@
+@php
+    $isIn = fn ($t) => $t->transaction_cat === 'ايداع' || $t->transaction_type === 'بنك/ايداع';
+    $in = $transactions->filter($isIn);
+    $out = $transactions->reject($isIn);
+@endphp
 @extends('layouts.master')
-@section('title', 'تقارير البنك')
-@section('breadcrumb-title')
-    <h3>تقارير البنك</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">التقارير</li>
-    <li class="breadcrumb-item active">تقارير البنك</li>
-@endsection
-@section('modals')
-    <button type="button" class="btn btn-success px-2 py-1" data-bs-toggle="modal" data-bs-target="#withdraw">سحب الى الخزنة</button>
-    <div class="modal fade" id="withdraw" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 class="text-center mb-0">سحب مبلغ من البنك الى الخزنة</h3>
-                </div>
-                <div class="modal-body">
-                    <form action="{{route('bank.withdraw')}}" method="post" enctype="multipart/form-data" id="BankForm">
-                        @csrf
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="form-group mb-3">
-                                    <label for="withdrawn_amount" class="text-muted">المبلغ المسحوب</label>
-                                    <input type="text" name="amount" id="withdrawn_bank" placeholder="المبلغ المسحوب" class="form-control text-muted" oninput="this.value = this.value.replace(/[^0-9]/g, '')" minlength="2" required>
-                                    <p class="required d-none text-danger mb-0 fw-bold" id="bankReq">هذا الحقل مطلوب</p>
-                                    <p class="required d-none text-danger mb-0 fw-bold" id="bankMsg">يجب ان لا يكون المبلغ اقل من 2 رقم و اكثر من 5 رقم</p>
-                                </div>
-                                <div class="form-group">
-                                    <label for="proof_withdraw" class="text-muted">إثبات السحب</label>
-                                    <input type="file" name="proof_img" id="proof_bank" class="form-control text-muted" accept="image/*" required>
-                                    <p class="required d-none fw-bold text-danger mb-0" id="bankImgReq">هذا الحقل مطلوب</p>
-                                    <p class="required d-none fw-bold text-danger mb-0" id="bankImgExt">يجب ان يكون امتداد الصورة [ jpg, png, jpeg, webp ]</p>
-                                    <p class="required d-none fw-bold text-danger mb-0" id="bankImgSize">يجب ان يكون حجم الصورة اقل من 2 ميجا</p>
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label for="payment_date" class="text-muted">تاريخ الدفع</label>
-                                    <input type="date" class="form-control text-muted" name="payment_date" id="payment_date">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer mt-3">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                            <button type="submit" role="button" id="BankSubmit" class="btn btn-primary">تأكيد</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+@section('title', 'تقرير البنك')
+@section('content')
+    <x-nb.page title="البنك" subtitle="رصيد حساب الجمعية في البنك وحركات الإيداع والسحب" :crumbs="['التقارير']">
+        <x-slot:actions>
+            <x-nb.button variant="ghost" icon="printer" onclick="window.print()">طباعة</x-nb.button>
+            <x-nb.button variant="gold" icon="repeat" open="#bank-to-safe">سحب للخزنة</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            <x-nb.stat label="رصيد البنك" :value="number_format($bankAmount)" unit="ج.م" icon="home" main />
+            <x-nb.stat label="إيداعات" :value="number_format($in->sum('amount'))" unit="ج.م" icon="arrow-down-left" tone="green" :note="$in->count().' حركة'" />
+            <x-nb.stat label="مسحوب للخزنة" :value="number_format($out->sum('amount'))" unit="ج.م" icon="arrow-up-right" tone="terra" :note="$out->count().' حركة'" />
+        </x-nb.stats>
+
+        <x-nb.card title="حركات البنك" icon="list" flush>
+            @if ($transactions->isEmpty())
+                <x-nb.empty icon="home" title="لسه مفيش حركات على البنك" />
+            @else
+                <x-nb.table id="bank-table" :order="[[0, 'desc']]">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>البيان</th>
+                            <th>الاتجاه</th>
+                            <th>الإثبات</th>
+                            <th class="is-end">المبلغ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($transactions as $item)
+                            <tr>
+                                <td class="nb-num nb-nowrap">{{ $item->payment_date }}</td>
+                                <td class="nb-strong">{{ $item->item }}</td>
+                                <td>
+                                    @if ($isIn($item))
+                                        <x-nb.badge tone="green" dot>ايداع</x-nb.badge>
+                                    @else
+                                        <x-nb.badge tone="terra" dot>سحب</x-nb.badge>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($item->proof_url)
+                                        <a href="{{ $item->proof_url }}" target="_blank" rel="noopener" class="nb-row"><i data-feather="paperclip"></i>عرض</a>
+                                    @else
+                                        <span class="nb-muted">—</span>
+                                    @endif
+                                </td>
+                                <td class="is-end nb-nowrap {{ $isIn($item) ? 'nb-in' : 'nb-out' }}" data-order="{{ $item->amount }}">{{ $isIn($item) ? '+' : '−' }}{{ number_format($item->amount) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </x-nb.table>
+            @endif
+        </x-nb.card>
     </div>
 @endsection
-@section('content')
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                    <h3 class="light-card balance-card mb-4 widget-hover w-50 mx-auto d-flex justify-content-center bg-primary rounded-pill">
-                        <i class="fas fa-dollar-sign" style="font-size:30px;"></i>
-                        تـقرير معاملات البنك
-                    </h3>
-                </div>
-                <div class="col-xl-12 box-col-6">
-                    <div class="card widget-1">
-                        <div class="card-body align-items-center">
-                            <div class="widget-content">
-                                <div class="bg-round">
-                                    <img width="70" height="70" src="https://img.icons8.com/color/70/money-transfer.png" alt="money-transfer" />
-                                </div>
-                                <div>
-                                    <h5 class="text-muted">المبلغ الحالي</h5>
-                                </div>
-                            </div>
-                            <div class="font-Info">
-                                <h5 class="mb-1 text-muted">{{number_format($bankAmount)}} ج.م</h5>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-header p-3">
-                            <h3 class="light-card balance-card widget-hover w-50 mx-auto justify-content-center rounded-pill bg-primary mb-0">
-                                <i class="fas fa-exchange-alt" style="font-size:30px;"></i>
-                                تـفاصيـل معاملات البنك
-                            </h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table display align-middle table-hover" id="table" data-order='[[0, "desc"]]' data-page-length='10'>
-                                    <thead>
-                                        <th class="text-center">
-                                            <i class="fas fa-calendar-week pe-2"></i>
-                                            تـاريخ المـعامله
-                                        </th>
-                                        <th class="text-center">
-                                            <i class="fas fa-question-circle pe-2"></i>
-                                            نوع المعامله
-                                        </th>
-                                        <th class="text-center">
-                                            <i class="fa-duotone fa-image pe-2"></i>
-                                            مستند المعاملة
-                                        </th>
-                                        <th class="text-center">
-                                            <i class="fas fa-dollar-sign pe-2"></i>
-                                            المبلغ
-                                        </th>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($transactions as $item)
-                                            <tr>
-                                                <td class="text-center">{{$item->payment_date}}</td>
-                                                <td class="text-center">
-                                                    @if ($item->transaction_cat === 'ايداع' || $item->transaction_type === 'بنك/ايداع')
-                                                        <span class="badge badge-success rounded-pill">إيداع</span>
-                                                    @else
-                                                        <span class="badge badge-danger rounded-pill">سحب</span>
-                                                    @endif
-                                                </td>
-                                                <td class="text-center">
-                                                    @if ($item->proof_url)
-                                                        <button type="button" class="btn btn-transparent" data-bs-target="#proof_{{$item->id}}" data-bs-toggle="modal">
-                                                            <img src="{{ $item->proof_url }}" width="70" class="rounded" alt="مستند المعاملة">
-                                                        </button>
-                                                        <div class="modal fade" id="proof_{{$item->id}}"  tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                            <div class="modal-dialog modal-dialog-centered">
-                                                                <div class="modal-content">
-                                                                    <div class="modal-body p-0">
-                                                                        <img src="{{ $item->proof_url }}" class="rounded w-100" alt="مستند المعاملة">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @else
-                                                        <span class="fw-bold">-</span>
-                                                    @endif
-                                                </td>
-                                                <td class="text-center">{{$item->amount}}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+@push('modals')
+    <x-nb.modal id="bank-to-safe" title="سحب مبلغ من البنك إلى الخزنة" icon="repeat" :action="route('bank.withdraw')" files submit="تأكيد السحب">
+        <div class="nb-form-grid">
+            <x-nb.field label="المبلغ" name="amount" type="number" min="1" :max="$bankAmount" required :hint="'الرصيد '.number_format($bankAmount).' ج.م'" />
+            <x-nb.field label="تاريخ السحب" name="payment_date" type="date" :value="now()->toDateString()" />
+            <x-nb.field label="إثبات السحب (صورة)" name="proof_img" type="file" accept="image/*" required span="full" />
         </div>
-@endsection
+    </x-nb.modal>
+@endpush

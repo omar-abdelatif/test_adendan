@@ -1,206 +1,84 @@
+@php
+    $roleNames = $roles->pluck('name', 'name')->all();
+    $permissionNames = $permissions->pluck('name', 'name')->all();
+    $permissionById = $permissions->pluck('name', 'id');
+    $direct = fn ($user) => collect($usersPermissions[$user->id] ?? [])->map(fn ($id) => $permissionById[$id] ?? null)->filter()->values()->all();
+@endphp
 @extends('layouts.master')
-@section('title', 'كل المستخدمين')
-@section('breadcrumb-title')
-    <h3>كل المستخدمين</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item active">كل المستخدمين</li>
-@endsection
-@section('style')
-    <link rel="stylesheet" type="text/css" href="{{asset('assets/css/vendors/select2.css')}}">
-@endsection
-@section('script')
-    <script src="{{asset('assets/js/select2/select2.full.min.js')}}"></script>
-    <script src="{{asset('assets/js/select2/select2-custom.js')}}"></script>
-@endsection
-@section('modals')
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#add_cat">إضافة مستخدم جديد</button>
-    <div class="modal fade" id="add_cat" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">إضافة مستخدم جديد</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action={{route('user.store')}} method="post" autocomplete="off">
-                        @csrf
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="form-group">
-                                    <label for="title" class="text-muted">إسم المستخدم</label>
-                                    <input type="text" class="form-control text-muted" name="name"  placeholder="إسم المستخدم" id="userName" required autocomplete="false">
-                                    <p class="required d-none text-danger mb-0" id="userNameReq">هذا الحقل مطلوب</p>
-                                    <p class="required d-none text-danger mb-0" id="userNameMsg">يجب ان يكون اسم اللجنة باللغة العربية ولا يقل عن 10 احرف</p>
-                                </div>
-                                <div class="form-group mt-3">
-                                    <label for="title" class="text-muted">البريد الإلكتروني</label>
-                                    <input type="email" class="form-control text-muted" name="email" placeholder="البريد الإلكتروني" id="userEmail" required>
-                                    <p class="required d-none text-danger mb-0" id="emailReq">هذا الحقل مطلوب</p>
-                                    <p class="required d-none text-danger mb-0" id="emailMsg">يجب ان يكتب الاسم باللغة العربية ولا يقل عن 3 احرف</p>
-                                </div>
-                                <div class="form-group mt-3">
-                                    <label for="title" class="text-muted">كلمة السر</label>
-                                    <input type="password" class="form-control text-muted" name="password" id="password" placeholder="كلمة السر">
-                                    <p class="required d-none text-danger mb-0" id="passReq">هذا الحقل مطلوب</p>
-                                    <p class="required d-none text-danger mb-0" id="passMsg">يجب ان يكتب الاسم باللغة العربية ولا يقل عن 3 احرف</p>
-                                </div>
-                                <div class="form-group mt-3">
-                                    <label for="title" class="text-muted">دور المستخدم</label>
-                                    <select name="role" class="form-select text-muted" id="role">
-                                        <option selected disabled>الدور</option>
-                                            @foreach ($roles as $role)
-                                                <option value="{{$role->name}}">{{$role->name}}</option>
-                                            @endforeach
-                                    </select>
-                                    <p class="required d-none text-danger mb-0" id="roleReq">هذا الحقل مطلوب</p>
-                                    <p class="required d-none text-danger mb-0" id="roleMsg">يجب ان يكتب الاسم باللغة العربية ولا يقل عن 3 احرف</p>
-                                </div>
-                                <div class="form-group mt-3">
-                                    <label for="permissions" class="form-label text-muted">صلاحيات المستخدم</label>
-                                    <select name="permission" id="pemissions" class="form-select text-muted js-example-rtl" multiple data-placeholder="-- صلاحيات المستخدم --">
-                                        @foreach ($permissions as $permission)
-                                            <option value="{{$permission->name}}">{{$permission->name}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                                    <button type="submit" role="button" id="userSubmit" class="btn btn-primary">تأكيد</button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
+@section('title', 'المستخدمين')
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="table" class="table table-hovered text-muted align-middle text-center" data-order='[[0,"asc"]]' data-page-length="10">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">#</th>
-                                        <th class="text-center">إسم المستخدم</th>
-                                        <th class="text-center">البريد الإلكتروني</th>
-                                        <th class="text-center">الدور</th>
-                                        <th class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($users as $user)
-                                        <tr>
-                                            <td class="text-center">{{ $loop->iteration }}</td>
-                                            <td class="text-center">{{ $user->name }}</td>
-                                            <td class="text-center">{{ $user->email }}</td>
-                                            <td class="text-center">
-                                                @foreach ($user->roles as $role)
-                                                    {{$role->name}}
-                                                @endforeach
-                                            </td>
-                                            <td class="text-center">
-                                                {{-- ! Update ! --}}
-                                                <button type="button" class="btn btn-warning px-2 py-1" data-bs-toggle="modal" data-bs-target="#editing_{{$user->id}}">
-                                                    <i class="fa-solid fa-pen"></i>
-                                                </button>
-                                                <div class="modal fade" id="editing_{{$user->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">تعديل لجنة {{$user->name}}</h1>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <form action={{route('newuser.update')}} method="post">
-                                                                    @csrf
-                                                                    <div class="row">
-                                                                        <input type="hidden" name="id" value={{$user->id}} >
-                                                                        <div class="col-lg-12">
-                                                                            <div class="form-group">
-                                                                                <label for="title" class="text-muted">إسم المستخدم</label>
-                                                                                <input type="text" class="form-control text-muted" name="name" value="{{$user->name}}" placeholder="إسم المستخدم" id="userName" required autocomplete="false">
-                                                                            </div>
-                                                                            <div class="form-group mt-3">
-                                                                                <label for="title" class="text-muted">البريد الإلكتروني</label>
-                                                                                <input type="email" class="form-control text-muted" value="{{$user->email}}" name="email" placeholder="البريد الإلكتروني" id="userEmail" required>
-                                                                            </div>
-                                                                            <div class="form-group mt-3">
-                                                                                <label for="title" class="text-muted">كلمة السر</label>
-                                                                                <input type="password" class="form-control text-muted" name="password" id="password" placeholder="كلمة السر">
-                                                                            </div>
-                                                                            <div class="form-group mt-3">
-                                                                                <label for="title" class="text-muted">دور المستخدم</label>
-                                                                                <select name="role" class="form-select" id="role">
-                                                                                    <option selected disabled>-- دور المستخدم --</option>
-                                                                                    @foreach($roles as $role)
-                                                                                        <option value="{{$role->name}}" {{ $user->hasRole($role->name) ? 'selected' : '' }}>{{$role->name}}</option>
-                                                                                    @endforeach
-                                                                                </select>
-                                                                            </div>
-                                                                            <div class="form-group mt-3">
-                                                                                <label for="permissions" class="form-label text-muted">صلاحيات المستخدم</label>
-                                                                                <select name="permission[]" id="permissions" class="form-select text-muted js-example-rtl" multiple data-placeholder="-- صلاحيات المستخدم --">
-                                                                                    @foreach ($permissions as $permission)
-                                                                                        <option value="{{$permission->name}}" 
-                                                                                            {{ isset($usersPermissions[$user->id]) && in_array($permission->id, $usersPermissions[$user->id]) ? 'selected' : '' }}>
-                                                                                            {{$permission->name}}
-                                                                                        </option>
-                                                                                    @endforeach
-                                                                                </select>
-                                                                            </div>
-                                                                            <div class="modal-footer">
-                                                                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                                                                                <button type="submit" role="button" id="userSubmit" class="btn btn-primary">تأكيد</button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {{-- ! Delete ! --}}
-                                                <button type="button" class="btn btn-danger px-2 py-1" data-bs-toggle="modal" data-bs-target="#deleting_{{$user->id}}">
-                                                    <i class="icofont icofont-trash"></i>
-                                                </button>
-                                                <div class="modal fade" id="deleting_{{$user->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">جار حذف اللجنة {{$user->name}}</h1>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <form action={{route('user.delete', $user->id)}} method="post">
-                                                                    @csrf
-                                                                    @method('DELETE')
-                                                                    <div class="form-title text-center">
-                                                                        <h3 class="text-muted my-2">هل أنت متأكد من الحذف</h3>
-                                                                    </div>
-                                                                    <div class="modal-footer">
-                                                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                                                                        <button type="submit" role="button" class="btn btn-primary">تأكيد</button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <x-nb.page title="المستخدمين" subtitle="موظفين الجمعية اللي بيدخلوا الداشبورد، ودور كل واحد" :crumbs="['الإدارة', 'المستخدمين والصلاحيات']">
+        <x-slot:actions>
+            <x-nb.button variant="ghost" icon="unlock" :href="route('roles.index')">الأدوار</x-nb.button>
+            <x-nb.button icon="user-plus" open="#user-add">إضافة مستخدم</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            <x-nb.stat label="المستخدمين" :value="$users->count()" icon="users" />
+            <x-nb.stat label="الأدوار" :value="$roles->count()" icon="unlock" tone="gold" />
+            <x-nb.stat label="الصلاحيات" :value="$permissions->count()" icon="lock" tone="green" />
+        </x-nb.stats>
+
+        <x-nb.card title="كل المستخدمين" icon="users" flush>
+            <x-nb.table id="users-table" :order="[[0, 'asc']]">
+                <thead><tr><th>المستخدم</th><th>البريد الإلكتروني</th><th>الدور</th><th>صلاحيات إضافية</th><th class="no-sort is-actions"></th></tr></thead>
+                <tbody>
+                    @foreach ($users as $user)
+                        <tr>
+                            <td><div class="nb-cell-main"><x-nb.avatar :name="$user->name" :src="$user->avatar ? asset('assets/images/users/'.$user->avatar) : null" size="sm" tone="teal" /><strong>{{ $user->name }}</strong></div></td>
+                            <td dir="ltr" style="text-align: right">{{ $user->email }}</td>
+                            <td>
+                                <div class="nb-chips">
+                                    @forelse ($user->roles as $role)
+                                        <x-nb.badge :tone="$role->name === 'master' ? 'ink' : 'teal'">{{ $role->name === 'master' ? 'مدير النظام' : $role->name }}</x-nb.badge>
+                                    @empty
+                                        <span class="nb-muted">—</span>
+                                    @endforelse
+                                </div>
+                            </td>
+                            <td class="nb-muted">{{ count($direct($user)) ?: '—' }}</td>
+                            <td class="is-actions">
+                                <div class="nb-row-actions">
+                                    <x-nb.icon-button icon="edit-2" label="تعديل" :open="'#user-edit-'.$user->id" />
+                                    @if ($user->id !== auth()->id())
+                                        <x-nb.icon-button icon="trash-2" label="حذف" tone="danger" :open="'#user-delete-'.$user->id" />
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </x-nb.table>
+        </x-nb.card>
     </div>
 @endsection
+
+@push('modals')
+    <x-nb.modal id="user-add" title="إضافة مستخدم جديد" icon="user-plus" size="lg" :action="route('user.store')" submit="إضافة المستخدم">
+        <div class="nb-form-grid">
+            <x-nb.field label="إسم المستخدم" name="name" required autocomplete="off" />
+            <x-nb.field label="البريد الإلكتروني" name="email" type="email" dir="ltr" required autocomplete="off" />
+            <x-nb.field label="كلمة السر" name="password" type="password" dir="ltr" required autocomplete="new-password" hint="8 حروف على الأقل" />
+            <x-nb.field label="الدور" name="role" type="select" :options="$roleNames" required />
+            <x-nb.checks label="صلاحيات إضافية غير اللي في الدور (اختياري)" name="permission[]" :options="$permissionNames" class="nb-span-full" />
+        </div>
+    </x-nb.modal>
+
+    @foreach ($users as $user)
+        <x-nb.modal :id="'user-edit-'.$user->id" :title="'تعديل '.$user->name" icon="edit-2" size="lg" :action="route('newuser.update')">
+            <input type="hidden" name="id" value="{{ $user->id }}">
+            <div class="nb-form-grid">
+                <x-nb.field label="إسم المستخدم" name="name" :value="$user->name" :row="$user->id" required />
+                <x-nb.field label="البريد الإلكتروني" name="email" type="email" dir="ltr" :value="$user->email" :row="$user->id" required />
+                <x-nb.field label="كلمة سر جديدة (اختياري)" name="password" type="password" dir="ltr" :row="$user->id" autocomplete="new-password" hint="سيبها فاضية لو مش هتغيّرها" />
+                <x-nb.field label="الدور" name="role" type="select" :options="$roleNames" :value="$user->roles->first()?->name" :row="$user->id" required />
+                <x-nb.checks label="صلاحيات إضافية غير اللي في الدور" name="permission[]" :options="$permissionNames" :selected="$direct($user)" class="nb-span-full" />
+            </div>
+        </x-nb.modal>
+        @if ($user->id !== auth()->id())
+            <x-nb.confirm :id="'user-delete-'.$user->id" :action="route('user.delete', $user->id)" :message="'هتحذف المستخدم '.$user->name.'؟'" />
+        @endif
+    @endforeach
+@endpush

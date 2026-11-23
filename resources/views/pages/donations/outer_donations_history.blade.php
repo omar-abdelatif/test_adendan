@@ -1,60 +1,49 @@
-@php
-    $user = Auth::user();
-@endphp
 @extends('layouts.master')
-@section('title', 'كل التبرعات')
-@section('breadcrumb-title')
-    <h3>كل التبرعات الخاصة بالمتبرع {{$donators->name}}</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">
-        <a href="{{route('donators.all')}}">كل المتبرعين</a>
-    </li>
-    <li class="breadcrumb-item active">التبرعات السابقة</li>
-@endsection
+@section('title', 'تبرعات '.$donators->name)
 @section('content')
-    @if ($errors->any())
-        @foreach ($errors->all() as $error)
-            <div class="alert alert-danger text-center w-50 mx-auto rounded" id="error">
-                <p class="mb-0">{{$error}}</p>
-            </div>
-        @endforeach
-    @endif
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h4 class="text-center">التبرعات السابقة للمتبرع {{$donators->name}}</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="table" class="table display table-hover text-muted" data-order='[[1,"asc"]]' data-page-length=10>
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">إسم المتبرع</th>
-                                        <th class="text-center">رقم الإيصال</th>
-                                        <th class="text-center">المبلغ</th>
-                                        <th class="text-center">نوع التبرع</th>
-                                        <th class="text-center">طريقة الدفع</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($outerdonations as $donations)
-                                        <tr>
-                                            <td class="text-center">{{$donators->name}}</td>
-                                            <td class="text-center">{{$donations->invoice_id}}</td>
-                                            <td class="text-center">{{$donations->amount}}</td>
-                                            <td class="text-center">{{$donations->donation_destination}}</td>
-                                            <td class="text-center">{{$donations->payment_method}}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <x-nb.page :title="'تبرعات '.$donators->name" :subtitle="$donators->donator_type.($donators->duration ? ' · '.$donators->duration : '').' · مسجل من '.$donators->created_at?->locale('ar')->translatedFormat('F Y')" :crumbs="['المتبرعين' => route('donators.all')]">
+        <x-slot:actions>
+            <x-nb.button variant="ghost" icon="arrow-right" :href="route('donators.all')">كل المتبرعين</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            <x-nb.stat label="إجمالي التبرعات" :value="number_format($outerdonations->sum('amount'))" unit="ج.م" icon="gift" main />
+            <x-nb.stat label="عدد التبرعات" :value="$outerdonations->count()" icon="layers" tone="gold" />
+            <x-nb.stat label="آخر تبرع" :value="$outerdonations->max('created_at')?->format('Y-m-d') ?? '—'" icon="clock" tone="green" />
+        </x-nb.stats>
+
+        <x-nb.card title="التبرعات السابقة" icon="clock" flush>
+            @if ($outerdonations->isEmpty())
+                <x-nb.empty icon="gift" title="لسه مفيش تبرعات من المتبرع ده" />
+            @else
+                <x-nb.table id="donor-history" :order="[[0, 'desc']]">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>رقم الإيصال</th>
+                            <th>جهة التبرع</th>
+                            <th>طريقة الدفع</th>
+                            <th class="is-end">المبلغ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($outerdonations as $donation)
+                            <tr>
+                                <td class="nb-num">{{ $donation->created_at?->format('Y-m-d') }}</td>
+                                <td class="nb-num">{{ $donation->invoice_id }}</td>
+                                <td class="nb-strong">{{ $donation->donation_destination }}</td>
+                                <td><x-nb.badge tone="teal">{{ $donation->payment_method }}</x-nb.badge></td>
+                                <td class="is-end nb-in">{{ number_format($donation->amount) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr><td colspan="4">الإجمالي</td><td class="is-end">{{ number_format($outerdonations->sum('amount')) }} ج.م</td></tr>
+                    </tfoot>
+                </x-nb.table>
+            @endif
+        </x-nb.card>
     </div>
 @endsection

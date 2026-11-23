@@ -1,62 +1,25 @@
-@php
-    $user = Auth::user();
-@endphp
-<div class="page-header">
-    <div class="header-wrapper row m-0">
-        <div class="header-logo-wrapper col-auto p-0">
-            <div class="logo-wrapper">
-                <a href="{{ route('home') }}">
-                    <img class="img-fluid" src="{{ asset('assets/images/logo/logo.png') }}" alt="">
-                </a>
+@php($user = Auth::user())
+<header class="nb-top">
+    <button type="button" class="nb-icon-btn nb-top__toggle" data-nb-side-toggle aria-controls="nb-side" aria-label="صغّر القائمة الجانبية"><i data-feather="menu"></i></button>
+    <span class="nb-top__date">{{ now()->locale('ar')->translatedFormat('l j F Y') }}</span>
+    <div class="nb-top__end">
+        <x-nb.button variant="ghost" size="sm" icon="external-link" :href="route('site.index')" target="_blank" rel="noopener">زيارة الموقع</x-nb.button>
+        <details class="nb-menu">
+            <summary>
+                <x-nb.avatar :name="$user->name" :src="$user->avatar ? asset('assets/images/users/'.$user->avatar) : null" size="sm" tone="teal" />
+                <span class="nb-menu__who">
+                    <strong>{{ $user->name }}</strong>
+                    <small>{{ $user->roles->pluck('name')->implode('، ') }}</small>
+                </span>
+                <i data-feather="chevron-down"></i>
+            </summary>
+            <div class="nb-menu__list">
+                <a href="{{ route('user.profile') }}"><i data-feather="user"></i>حسابي</a>
+                <form action="{{ route('logout') }}" method="POST" data-nb-native>
+                    @csrf
+                    <button type="submit"><i data-feather="log-out"></i>تسجيل الخروج</button>
+                </form>
             </div>
-            <div class="toggle-sidebar">
-                <i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i>
-            </div>
-        </div>
-        <div class="nav-right col-xxl-7 col-xl-6 col-md-7 col-8 pull-right right-header p-0 ms-auto">
-            <ul class="nav-menus">
-                <li>
-                    <a href="{{route('site.index')}}" class="btn btn-outline-success" target="_blank">زيارة الموقع</a>
-                </li>
-                <li>
-                    <div class="mode">
-                        <svg>
-                            <use href="{{ asset('assets/svg/icon-sprite.svg#moon') }}"></use>
-                        </svg>
-                    </div>
-                </li>
-                <li class="profile-nav onhover-dropdown pe-0 py-0">
-                    <div class="media profile-media">
-                        <img class="rounded-circle" width="50" src={{$user->avatar ? asset('assets/images/users/'.$user->avatar) : 'https://www.pulsecarshalton.co.uk/wp-content/uploads/2016/08/jk-placeholder-image.jpg'}} alt={{$user->avatar}}>
-                        <div class="media-body">
-                            <span>{{$user->name}}</span>
-                            <p class="mb-0 font-roboto">
-                                @foreach ($user->roles as $role)
-                                    {{$role->name}}
-                                @endforeach
-                                <i class="middle fa fa-angle-down"></i>
-                            </p>
-                        </div>
-                    </div>
-                    <ul class="profile-dropdown onhover-show-div">
-                        <li>
-                            <a href={{route('user.profile')}}>
-                                <i data-feather="user"></i>
-                                <span>Account</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i data-feather="settings"></i>
-                                {{ __('Logout') }}
-                            </a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                @csrf
-                            </form>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
+        </details>
     </div>
-</div>
+</header>

@@ -1,88 +1,57 @@
+@php
+    $top = \App\Models\Subscribers::query()->billable()->whereNotNull('job')->where('job', '!=', '')
+        ->selectRaw('job, COUNT(*) AS total')->groupBy('job')->orderByDesc('total')->limit(10)->pluck('total', 'job');
+    $max = max(1, $top->max() ?? 1);
+    $results = $jobs ?? collect();
+    $phone = fn ($n) => $n ? '0'.ltrim((string) $n, '0') : '—';
+@endphp
 @extends('layouts.master')
-@section('title', 'تقارير الوظائف')
-@section('breadcrumb-title')
-    <h3>تقارير الوظائف</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">التقارير</li>
-    <li class="breadcrumb-item active">تقارير الوظائف</li>
-@endsection
+@section('title', 'تقرير الوظائف')
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="job-filter mb-5 text-center">
-                            <form action="{{route('reports.jobs')}}" method="get">
-                                @csrf
-                                <div class="d-flex align-items-center justify-content-center">
-                                    <input type="search" name="search" placeholder="بحث بالوظيفة" class="form-control w-50 text-center text-white">
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="fa-solid fa-magnifying-glass"></i>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="table-responsive">
-                            <div class="searchResultTitle text-center mb-5">
-                                @if (isset($keyword) && $jobs->isNotEmpty())
-                                    <h1>نتائج البحث عن "{{ $keyword }}"</h1>
-                                @else
-                                    <h1>{{ $message }}</h1>
-                                @endif
-                            </div>
-                            @if (isset($keyword) && $jobs->isNotEmpty())
-                                <table class="table display align-middle text-center table-hover" id="table2" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                    <thead>
-                                        <tr>
-                                            <th class="text-white text-center">إسم المشترك</th>
-                                            <th class="text-white text-center">الرقم القومي</th>
-                                            <th class="text-white text-center">رقم المحمول</th>
-                                            <th class="text-white text-center">الوظيفة</th>
-                                            <th class="text-white text-center">مكان السكن</th>
-                                            <th class="text-white text-center">حالة الإشتراك</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($jobs as $item)
-                                            <tr>
-                                                <td class="text-center text-white">{{$item->name}}</td>
-                                                <td class="text-center text-white">{{$item->ssn}}</td>
-                                                <td class="text-center text-white">{{$item->mobile_no}}</td>
-                                                <td class="text-center text-white">{{$item->job}}</td>
-                                                <td class="text-center text-white">{{$item->address}}</td>
-                                                <td class="text-center text-white">
-                                                    @if($item->status == 1)
-                                                        <span class="badge rounded-pill badge-success">الإشتراك مفعل</span>
-                                                    @else
-                                                        <span class="badge rounded-pill badge-danger">الإشتراك غير مفعل</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            @else
-                                <table class="table display align-middle text-center table-hover" id="table2" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th class="text-white text-center">إسم المشترك</th>
-                                            <th class="text-white text-center">الرقم القومي</th>
-                                            <th class="text-white text-center">رقم المحمول</th>
-                                            <th class="text-white text-center">الوظيفة</th>
-                                            <th class="text-white text-center">مكان السكن</th>
-                                            <th class="text-white text-center">حالة الإشتراك</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <x-nb.page title="تقرير الوظائف" subtitle="المهن والوظائف بتاعة الأعضاء" :crumbs="['التقارير']" />
+
+    <div class="nb-split">
+        <div class="nb-stack">
+            <x-nb.card title="بحث بالوظيفة" icon="search">
+                <form action="{{ route('reports.jobs') }}" method="GET" class="nb-row" style="align-items: flex-end">
+                    <x-nb.field label="الوظيفة" name="search" type="search" :value="$keyword ?? null" placeholder="مثلاً: مهندس" style="width: 280px" />
+                    <x-nb.button type="submit" icon="search">بحث</x-nb.button>
+                </form>
+            </x-nb.card>
+
+            <x-nb.card :title="isset($keyword) && $keyword ? 'وظيفة «'.$keyword.'»' : 'النتايج'" :subtitle="$results->isNotEmpty() ? $results->count().' عضو' : null" icon="briefcase" flush>
+                @if ($results->isEmpty())
+                    <x-nb.empty icon="briefcase" :title="$message ?? 'اكتب اسم وظيفة عشان تشوف الأعضاء'" />
+                @else
+                    <x-nb.table id="jobs-table" :order="[[0, 'asc']]">
+                        <thead><tr><th>العضو</th><th>الوظيفة</th><th>الرقم القومي</th><th>رقم المحمول</th><th>السكن</th><th>الحالة</th></tr></thead>
+                        <tbody>
+                            @foreach ($results as $item)
+                                <tr>
+                                    <td class="nb-strong">{{ $item->name }}</td>
+                                    <td><x-nb.badge tone="teal">{{ $item->job }}</x-nb.badge></td>
+                                    <td class="nb-num">{{ $item->ssn }}</td>
+                                    <td class="nb-num" dir="ltr">{{ $phone($item->mobile_no) }}</td>
+                                    <td>{{ $item->address ?: '—' }}</td>
+                                    <td><x-nb.member-status :status="$item->status" /></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </x-nb.table>
+                @endif
+            </x-nb.card>
         </div>
+
+        <x-nb.card title="أكتر الوظائف" icon="bar-chart-2" tone="gold">
+            <div class="nb-bars">
+                @foreach ($top as $job => $total)
+                    <div class="nb-bars__row">
+                        <a href="{{ route('reports.jobs', ['search' => $job]) }}">{{ $job }}</a>
+                        <span class="nb-bars__track"><span style="width: {{ round($total / $max * 100) }}%"></span></span>
+                        <span class="nb-bars__value">{{ number_format($total) }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </x-nb.card>
     </div>
 @endsection
-

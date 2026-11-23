@@ -1,240 +1,68 @@
+@php
+    $currentRemaining = $sumTotalCurrentSubscriptionDues - $sumTotalCurrentSubscriptionDuesPaid;
+    $currentPercent = $sumTotalCurrentSubscriptionDues > 0 ? (int) floor($sumTotalCurrentSubscriptionDuesPaid / $sumTotalCurrentSubscriptionDues * 100) : 0;
+    $phone = fn ($n) => $n ? '0'.ltrim((string) $n, '0') : '—';
+@endphp
 @extends('layouts.master')
 @section('title', 'تقارير الإشتراكات')
-@section('breadcrumb-title')
-    <h3>تقارير الإشتراكات</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item">التقارير</li>
-    <li class="breadcrumb-item active">تقارير الإشتراكات</li>
-@endsection
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-lg-12">
-                <h3 class="light-card balance-card mb-4 widget-hover w-50 mx-auto d-flex justify-content-center bg-primary rounded-pill">
-                    <i class="fas fa-dollar-sign" style="font-size:30px;"></i>
-                    تـقرير الإشـتراكـات
-                </h3>
-            </div>
-            <div class="col-xl-12 box-col-12">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="60" height="60" src="https://img.icons8.com/external-filled-outline-perfect-kalash/60/external-Group-corporate-development-filled-outline-perfect-kalash.png" alt="external-Group-corporate-development-filled-outline-perfect-kalash" />
-                            </div>
-                            <div>
-                                <h5 class="text-muted">عـدد الأعـضاء</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted">{{$count}}</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-12 box-col-12">
-                <div class="card widget-1 ">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="80" height="80" src="https://img.icons8.com/dusk/80/average-2.png" alt="average-2" />
-                            </div>
-                            <div>
-                                <h5 class="text-muted">إجمالي مستحقات الإشتراكات</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted"> {{$sumTotalSubscriptionDues}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-6 box-col-6">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="80" height="80" src="https://img.icons8.com/color/80/money-transfer.png" alt="money-transfer" />
-                            </div>
-                            <div>
-                                <h5 class="text-muted">الـمحصـل ( المستحقات )</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted"> {{$subscriptionSumDuePaied}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-6 box-col-6">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="80" height="80" src="https://img.icons8.com/dusk/80/question-mark.png" alt="question-mark" />
-                            </div>
-                            <div>
-                                <h5 class="text-muted">المتبقي ( المستحقات )</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted"> {{ $sumTotalSubscriptionDues - $subscriptionSumDuePaied }} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-12 box-col-12">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="80" height="80" src="https://img.icons8.com/dusk/80/question-mark.png" alt="question-mark" />
-                            </div>
-                            <div>
-                                <h5 class="text-muted">إجمالي قيمة الإشتراك الحالي {{ $currentSubscriptionYear }}</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted"> {{$sumTotalCurrentSubscriptionDues}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-6 box-col-6">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="80" height="80" src="https://img.icons8.com/dusk/80/question-mark.png" alt="question-mark" />
-                            </div>
-                            <div>
-                                <h5 class="text-muted">المحصل ( قيمة الإشتراك )</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted"> {{$sumTotalCurrentSubscriptionDuesPaid}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-xl-6 box-col-6">
-                <div class="card widget-1">
-                    <div class="card-body align-items-center">
-                        <div class="widget-content">
-                            <div class="bg-round">
-                                <img width="80" height="80" src="https://img.icons8.com/dusk/80/question-mark.png" alt="question-mark" />
-                            </div>
-                            <div>
-                                <h5 class="text-muted">المتبقي ( قيمة الإشتراك )</h5>
-                            </div>
-                        </div>
-                        <div class="font-Info">
-                            <h5 class="mb-1 text-muted"> {{$sumTotalCurrentSubscriptionDues - $sumTotalCurrentSubscriptionDuesPaid}} ج.م</h5>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-12">
-                <div class="card">
-                    <div class="card-header p-3">
-                        <h3 class="light-card balance-card widget-hover w-50 mx-auto justify-content-center rounded-pill bg-primary mb-0">
-                            <i class="fas fa-exchange-alt" style="font-size:30px;"></i>
-                            تـفاصيـل مديونيه إشتراك الأعضاء
-                        </h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table display align-middle table-hover" id="table" data-order='[[ 0, "asc" ]]' data-page-length='10'>
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">
-                                            <i class="fas fa-signature"></i>
-                                            رقــم العـضويه
-                                        </th>
-                                        <th class="text-center">
-                                            <i class="fas fa-signature"></i>
-                                            الأسـم
-                                        </th>
-                                        <th class="text-center">
-                                            <i class="fas fa-calendar-week"></i>
-                                            رقـم الموبايل
-                                        </th>
-                                        <th class="text-center">
-                                            <i class="fa-duotone fa-gear"></i>
-                                            Action
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($subscribers as $subscriber)
-                                        <tr>
-                                            <td class="text-center">{{$subscriber->member_id}}</td>
-                                            <td class="text-center">{{$subscriber->name}}</td>
-                                            <td class="text-center">{{$subscriber->mobile_no}}</td>
-                                            <td class="text-center">
-                                                <button type="button" class="btn btn-success text-dark" data-bs-toggle="modal" data-bs-target="#subsc_{{$subscriber->id}}">
-                                                    <i class="fa-solid fa-eye"></i>
-                                                </button>
-                                                <div class="modal fade" id="subsc_{{$subscriber->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                    <div class="modal-dialog modal-lg">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h1 class="modal-title fs-5 text-white" id="exampleModalLabel">تفاصيل العضو {{$subscriber->name}}</h1>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div class="table-responsive">
-                                                                    <table class="table display align-middle text-center table-hover">
-                                                                        <thead>
-                                                                            <tr>
-                                                                                <th class="text-center">قيمة الإشتراك</th>
-                                                                                <th class="text-center">رقم الإيصال</th>
-                                                                                <th class="text-center">تاريخ الدفع</th>
-                                                                                <th class="text-center">فترة الإشتراك</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @php
-                                                                                // Loaded once in FinanceReports::subscriptions(), already filtered to subscription payments.
-                                                                                $subscriptionDues = $subscriber->paymentTransactions;
-                                                                            @endphp
-                                                                            @if ($subscriptionDues->count() > 0)
-                                                                                @foreach ($subscriptionDues as $subscription)
-                                                                                    <tr>
-                                                                                        <td>{{$subscription->amount}}</td>
-                                                                                        <td>{{$subscription->inv_no}}</td>
-                                                                                        <td>{{$subscription->created_at->format('Y-m-d')}}</td>
-                                                                                        <td>{{ $subscription->item }}</td>
-                                                                                    </tr>
-                                                                                @endforeach
-                                                                            @else
-                                                                                <tr>
-                                                                                    <div class="col-lg-12">
-                                                                                        <td colspan="4">
-                                                                                            <h1 class="text-center text-white">لا توجد مستحقات مدفوعه لهذا المشترك</h1>
-                                                                                        </td>
-                                                                                    </div>
-                                                                                </tr>
-                                                                            @endif
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <x-nb.page title="تقارير الإشتراكات" :subtitle="'التحصيل في سنة '.$currentSubscriptionYear.' والمستحقات من السنين اللي فاتت'" :crumbs="['التقارير']">
+        <x-slot:actions>
+            <x-nb.button variant="ghost" icon="printer" onclick="window.print()">طباعة</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-stack">
+        <x-nb.stats>
+            <x-nb.stat :label="'المحصل من اشتراك '.$currentSubscriptionYear" :value="number_format($sumTotalCurrentSubscriptionDuesPaid)" unit="ج.م" icon="check-circle" main
+                       :note="'من '.number_format($sumTotalCurrentSubscriptionDues).' ج.م · '.$currentPercent.'%'" />
+            <x-nb.stat :label="'الباقي من اشتراك '.$currentSubscriptionYear" :value="number_format($currentRemaining)" unit="ج.م" icon="clock" tone="gold" :progress="$currentPercent" />
+            <x-nb.stat label="مستحقات السنين اللي فاتت" :value="number_format($sumTotalSubscriptionDues)" unit="ج.م" icon="alert-circle" tone="terra" />
+            <x-nb.stat label="عدد الأعضاء" :value="number_format($count)" icon="users" tone="green" :note="'المحصل من كل المستحقات '.number_format($subscriptionSumDuePaied).' ج.م'" />
+        </x-nb.stats>
+
+        <x-nb.card title="الأعضاء ومدفوعات الإشتراك" subtitle="اضغط على السهم عشان تشوف مدفوعات العضو" icon="users" flush>
+            <x-nb.table id="subs-table" :order="[[1, 'asc']]">
+                <thead>
+                    <tr>
+                        <th class="no-sort"></th>
+                        <th>رقم العضوية</th>
+                        <th>العضو</th>
+                        <th>رقم المحمول</th>
+                        <th class="is-end">مدفوعات الإشتراك</th>
+                        <th>آخر سنة مدفوعة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($subscribers as $subscriber)
+                        @php($payments = $subscriber->paymentTransactions)
+                        <tr>
+                            <td>
+                                <button type="button" class="nb-icon-btn" data-nb-child aria-label="مدفوعات {{ $subscriber->name }}"><i data-feather="chevron-down"></i></button>
+                                <template>
+                                    @if ($payments->isEmpty())
+                                        <div class="nb-muted" style="padding: 8px 12px">مفيش مدفوعات إشتراك مسجلة.</div>
+                                    @else
+                                        <table class="nb-table">
+                                            <thead><tr><th>فترة الإشتراك</th><th>تاريخ الدفع</th><th>رقم الإيصال</th><th class="is-end">المبلغ</th></tr></thead>
+                                            <tbody>
+                                                @foreach ($payments as $subscription)
+                                                    <tr><td>{{ $subscription->item }}</td><td>{{ $subscription->payment_date ?? $subscription->created_at?->format('Y-m-d') }}</td><td>{{ $subscription->inv_no ?? '—' }}</td><td class="is-end">{{ number_format($subscription->amount) }}</td></tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    @endif
+                                </template>
+                            </td>
+                            <td class="nb-num">{{ $subscriber->member_id }}</td>
+                            <td class="nb-strong">{{ $subscriber->name }}</td>
+                            <td class="nb-num" dir="ltr">{{ $phone($subscriber->mobile_no) }}</td>
+                            <td class="is-end nb-in" data-order="{{ $payments->sum('amount') }}">{{ number_format($payments->sum('amount')) }}</td>
+                            <td>{{ $payments->max('item') ?? '—' }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </x-nb.table>
+        </x-nb.card>
     </div>
 @endsection

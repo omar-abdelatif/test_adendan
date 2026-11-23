@@ -1,150 +1,80 @@
+@php($current = $years->sortByDesc('year')->first())
 @extends('layouts.master')
-@section('title', 'التكلفة السنوية')
-@section('breadcrumb-title')
-    <h3>التكلفة السنوية</h3>
-@endsection
-@section('breadcrumb-items')
-    <li class="breadcrumb-item active">التكلفة السنوية</li>
-@endsection
-@section('modals')
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#add_cat">إضافة المبلغ السنوي</button>
-    <div class="modal fade" id="add_cat" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">المبلغ السنوي</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form action={{route('costyears.store')}} method="post" id="costYears">
-                        @csrf
-                        <div class="form-group">
-                            <label for="year" class="text-muted">السنة</label>
-                            <input type="number" class="form-control text-muted" id="year" name="year" placeholder="السنة" required>
-                            <p class="required d-none text-danger mb-0" id="yearReq">حقل السنة مطلوب</p>
-                            <p class="required d-none text-danger mb-0" id="yearMsg">يجب إدخال السنة بصيغة صحيحة</p>
-                        </div>
-                        <div class="form-group">
-                            <label for="cost" class="text-muted">المبلغ</label>
-                            <input type="number" class="form-control text-muted" id="cost" name="cost" placeholder="المبلغ" required>
-                            <p class="required d-none text-danger mb-0" id="amountReq">حقل المبلغ مطلوب</p>
-                            <p class="required d-none text-danger mb-0" id="amountMsg">يجب ان يكون المبلغ اكبر من صفر و مكون من رقمين</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                            <button type="submit" role="button" id="submitCost" class="btn btn-primary">تأكيد</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+@section('title', 'الإشتراك السنوي')
+@section('content')
+    <x-nb.page title="الإشتراك السنوي" subtitle="قيمة الاشتراك لكل سنة. السنة بتبدأ يوليو وبتتسمى بسنة نهايتها" :crumbs="['الأعضاء والمالية']">
+        <x-slot:actions>
+            <x-nb.button icon="plus" open="#year-add">إضافة سنة</x-nb.button>
+        </x-slot:actions>
+    </x-nb.page>
+
+    <div class="nb-split">
+        <x-nb.card title="كل السنين" icon="calendar" flush>
+            <x-nb.table id="years-table" :order="[[0, 'desc']]">
+                <thead>
+                    <tr>
+                        <th>السنة</th>
+                        <th>الفترة</th>
+                        <th class="is-end">قيمة الإشتراك</th>
+                        <th class="no-sort is-actions"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($years as $year)
+                        <tr>
+                            <td>
+                                <div class="nb-cell-main">
+                                    <strong class="nb-num">{{ $year->year }}</strong>
+                                    @if ($current && $year->id === $current->id)
+                                        <x-nb.badge tone="green" dot>الحالية</x-nb.badge>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="nb-muted">يوليو {{ $year->year - 1 }} ← يونيو {{ $year->year }}</td>
+                            <td class="is-end nb-strong">{{ number_format($year->cost) }} <small class="nb-muted">ج.م</small></td>
+                            <td class="is-actions">
+                                <div class="nb-row-actions">
+                                    <x-nb.icon-button icon="edit-2" label="تعديل" :open="'#year-edit-'.$year->id" />
+                                    <x-nb.icon-button icon="trash-2" label="حذف" tone="danger" :open="'#year-delete-'.$year->id" />
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </x-nb.table>
+        </x-nb.card>
+
+        <div class="nb-stack">
+            @if ($current)
+                <x-nb.stat label="اشتراك السنة الحالية" :value="number_format($current->cost)" unit="ج.م" icon="calendar" main
+                           :note="'سنة '.$current->year.' · يوليو '.($current->year - 1).' ← يونيو '.$current->year" />
+            @endif
+            <x-nb.card title="إزاي بتشتغل" icon="info" tone="gold">
+                <ul style="margin: 0; padding-inline-start: 18px; line-height: 2" class="nb-muted">
+                    <li>ضيف السنة الجديدة قبل يوليو بقيمتها.</li>
+                    <li>بعدها ولّد المستحقات من «عمليات بالجملة» في صفحة المشتركين.</li>
+                    <li>المستحق بيتسمى برقم السنة، زي 2027.</li>
+                </ul>
+            </x-nb.card>
         </div>
     </div>
 @endsection
-@section('content')
-    @if ($errors->any())
-        @foreach ($errors->all() as $error)
-            <div class="alert alert-danger text-center w-50 mx-auto rounded" id="error">
-                <p class="mb-0">{{$error}}</p>
-            </div>
-        @endforeach
-    @endif
-    <section class="cost-years">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table id="table" class="table display align-middle table-hover" data-order='[[ 0, "asc"]]' data-page-length="10">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-center">#</th>
-                                            <th class="text-center">السنة</th>
-                                            <th class="text-center">المبلغ</th>
-                                            <th class="text-center">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php $i =1 ?>
-                                        @foreach ($years as $year)
-                                            <tr>
-                                                <td class="text-center">{{$i++}}</td>
-                                                <td class="text-center">{{$year->year}}</td>
-                                                <td class="text-center">{{$year->cost}}</td>
-                                                <td class="text-center">
-                                                    {{-- ! Update ! --}}
-                                                    <button type="button" class="btn btn-warning px-2 py-1" data-bs-toggle="modal" data-bs-target="#editing_{{$year->id}}">
-                                                        <i class="fa-solid fa-pen"></i>
-                                                    </button>
-                                                    <div class="modal fade" id="editing_{{$year->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                        <div class="modal-dialog">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h1 class="modal-title fs-5 text-muted" id="exampleModalLabel">تعديل سنة {{$year->year}}</h1>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <form action={{route('costyears.update')}} method="post">
-                                                                        @csrf
-                                                                        <div class="row">
-                                                                            <input type="hidden" name="id" value={{$year->id}} >
-                                                                            <div class="col-lg-12">
-                                                                                <div class="form-group mb-3">
-                                                                                    <label for="year" class="text-muted">السنة</label>
-                                                                                    <input type="number" name="year" value="{{$year->year}}" id="year" class="form-control text-muted">
-                                                                                </div>
-                                                                                <div class="form-group mb-3">
-                                                                                    <label for="cost" class="text-muted">المبلغ</label>
-                                                                                    <input type="number" name="cost" value="{{$year->cost}}" id="cost" class="form-control text-muted">
-                                                                                </div>
-                                                                                <div class="modal-footer">
-                                                                                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                                                                                    <button type="submit" role="button" class="btn btn-primary">تأكيد</button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    {{-- ! Delete ! --}}
-                                                    <button type="button" class="btn btn-danger px-2 py-1" data-bs-toggle="modal" data-bs-target="#deleting_{{$year->id}}">
-                                                        <i class="icofont icofont-trash"></i>
-                                                    </button>
-                                                    <div class="modal fade" id="deleting_{{$year->id}}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                        <div class="modal-dialog">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h1 class="modal-title fs-5 text-white" id="exampleModalLabel">جار حذف السنة {{$year->year}}</h1>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <form action={{route('costyears.remove', $year->id)}} method="post">
-                                                                        @csrf
-                                                                        @method('DELETE')
-                                                                        <div class="form-title text-center">
-                                                                            <h3 class="text-white my-2">هل أنت متأكد من الحذف</h3>
-                                                                        </div>
-                                                                        <div class="modal-footer">
-                                                                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">إغلاق</button>
-                                                                            <button type="submit" role="button" class="btn btn-primary">تأكيد</button>
-                                                                        </div>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+@push('modals')
+    <x-nb.modal id="year-add" title="إضافة سنة جديدة" icon="plus" size="sm" :action="route('costyears.store')" submit="إضافة">
+        <div class="nb-form-grid">
+            <x-nb.field label="السنة" name="year" type="number" min="2000" max="2100" :placeholder="(string) (($current->year ?? now()->year) + 1)" required />
+            <x-nb.field label="المبلغ" name="cost" type="number" min="0" required />
         </div>
-    </section>
-@endsection
+    </x-nb.modal>
+    @foreach ($years as $year)
+        <x-nb.modal :id="'year-edit-'.$year->id" :title="'تعديل سنة '.$year->year" icon="edit-2" size="sm" :action="route('costyears.update')">
+            <input type="hidden" name="id" value="{{ $year->id }}">
+            <div class="nb-form-grid">
+                <x-nb.field label="السنة" name="year" type="number" :value="$year->year" :row="$year->id" required />
+                <x-nb.field label="المبلغ" name="cost" type="number" :value="$year->cost" :row="$year->id" required />
+            </div>
+        </x-nb.modal>
+        <x-nb.confirm :id="'year-delete-'.$year->id" :action="route('costyears.remove', $year->id)" :message="'هتحذف سنة '.$year->year.'؟'" />
+    @endforeach
+@endpush

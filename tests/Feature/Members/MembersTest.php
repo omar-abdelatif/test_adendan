@@ -116,10 +116,54 @@ class MembersTest extends TestCase
 
         $html = $this->getJson('/admin/subscribers/subscribers/ajax/data/subscribers?draw=1&start=0&length=10')
             ->assertOk()
-            ->json('data.0.Actions');
+            ->json('data.0.row');
 
         $this->assertStringNotContainsString('<script>alert(1)</script>', $html);
         $this->assertStringContainsString('&lt;script&gt;', $html);
+    }
+
+    public function test_member_preview_shows_the_file_and_what_is_missing(): void
+    {
+        $this->actingAsStaff('المشتركين');
+        $member = Subscribers::factory()->create([
+            'name' => '<b>حسن</b> بشير', 'job' => 'مهندس', 'job_destination' => 'بنك مصر', 'martial_status' => 'متزوج',
+            'educational_qualification' => 'بكالوريوس علوم', 'img' => null, 'id_img' => null, 'address' => '',
+        ]);
+        $member->update(['mobile_no' => 1223456789]);
+
+        $html = $this->get("/admin/subscribers/preview/{$member->id}")->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('<b>حسن</b>', $html);
+        $this->assertStringContainsString('&lt;b&gt;حسن&lt;/b&gt; بشير', $html);
+        $this->assertStringContainsString('بنك مصر', $html);
+        $this->assertStringContainsString('href="tel:01223456789"', $html);
+        // photo, ID image and address are missing: 7 of 10 fields
+        $this->assertStringContainsString('الملف 70% كامل', $html);
+        $this->assertStringContainsString('ناقص: الصورة الشخصية، صورة البطاقة، العنوان', $html);
+        $this->assertStringContainsString('اتعدل: رقم المحمول', $html);
+    }
+
+    public function test_bulk_operations_open_from_a_drawer_by_permission(): void
+    {
+        $this->actingAsStaff('المشتركين');
+        $this->get('/admin/subscribers/subscribers/all')->assertOk()->assertDontSee('id="bulk-drawer"', false);
+
+        $this->actingAsStaff('المشتركين', 'مديونية الاشتراك');
+        $this->get('/admin/subscribers/subscribers/all')->assertOk()
+            ->assertSee('id="bulk-drawer"', false)
+            ->assertSee('data-nb-start="#bulk-year-dues"', false)
+            ->assertDontSee('data-nb-start="#generate-passwords"', false);
+    }
+
+    public function test_member_preview_needs_the_members_permission(): void
+    {
+        $member = Subscribers::factory()->create();
+
+        $this->actingAsStaff('الأخبار');
+        $this->get("/admin/subscribers/preview/{$member->id}")->assertForbidden();
+
+        $this->actingAsStaff('المشتركين');
+        $this->get('/admin/subscribers/preview/999999')->assertNotFound();
     }
 
     public function test_members_page_renders(): void

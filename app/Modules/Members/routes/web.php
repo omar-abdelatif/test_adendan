@@ -15,6 +15,7 @@ Route::prefix('subscribers')->controller(MembersController::class)->group(functi
     Route::get('subscribers/ajax/data/subscribers', 'table')->name('ajax.subscribers');
     Route::post('store', 'store')->name('subscribe.store');
     Route::get('update/{subscriber}', 'edit')->name('subscriber.details');
+    Route::get('preview/{subscriber}', 'preview')->name('subscriber.preview');
     Route::post('update', 'update')->name('subscribe.update');
     Route::delete('delete/{subscriber}', 'destroy')->name('subscribe.destroy');
     Route::post('bulk_upload', 'import')->name('subscriber.bulk');
