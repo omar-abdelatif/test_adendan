@@ -5,6 +5,7 @@ namespace App\Modules\Finance\Domain;
 use App\Modules\Finance\Domain\Enums\Account;
 use App\Modules\Finance\Domain\Enums\Channel;
 use App\Modules\Finance\Domain\Enums\Direction;
+use App\Modules\Finance\Domain\Enums\Fund;
 use App\Modules\Finance\Domain\Enums\PaymentCategory;
 use App\Modules\Finance\Domain\Enums\PaymentMethod;
 use App\Modules\Finance\Domain\Enums\TransactionType;
@@ -16,7 +17,7 @@ use Carbon\CarbonInterface;
  *
  * $account is where the money physically moves (safe or bank). Null means it
  * moves outside our accounts (an online payment held by Paymob), so no balance
- * changes.
+ * changes. $fund is whose money it is; each fund has its own safe and bank balance.
  */
 final class LedgerEntry
 {
@@ -36,5 +37,6 @@ final class LedgerEntry
         public readonly ?string $paymobOrderId = null,
         public readonly ?string $paymobTransactionId = null,
         public readonly ?string $paymobStatus = null,
+        public readonly Fund $fund = Fund::General,
     ) {}
 }

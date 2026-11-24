@@ -16,7 +16,7 @@ class TotalSafe extends Model
 
     protected $table = 'total_safes';
 
-    protected $fillable = ['amount'];
+    protected $fillable = ['fund', 'amount'];
 
     protected function getDynamicLogName(): string
     {

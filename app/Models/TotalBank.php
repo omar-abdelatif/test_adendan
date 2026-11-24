@@ -16,7 +16,7 @@ class TotalBank extends Model
 
     protected $table = 'total_banks';
 
-    protected $fillable = ['amount'];
+    protected $fillable = ['fund', 'amount'];
 
     protected function getDynamicLogName(): string
     {

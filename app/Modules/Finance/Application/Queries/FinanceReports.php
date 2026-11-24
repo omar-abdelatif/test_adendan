@@ -12,6 +12,7 @@ use App\Modules\Finance\Application\Treasury;
 use App\Modules\Finance\Domain\Enums\Account;
 use App\Modules\Finance\Domain\Enums\Direction;
 use App\Modules\Finance\Domain\Enums\DueType;
+use App\Modules\Finance\Domain\Enums\Fund;
 use App\Modules\Finance\Domain\Enums\PaymentCategory;
 use App\Modules\Finance\Domain\Enums\TransactionType;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,7 +55,7 @@ class FinanceReports
             'sumTotalSubscriptionDues' => $subscriptionDues()->where('item', '!=', $currentYear)->sum('amount_remaining'),
             'subscriptionSumDuePaied' => $subscriptionDues()->sum('amount_paid'),
             'sumTotalCurrentSubscriptionDues' => $subscriptionDues()->where('item', $currentYear)->sum('total_amount'),
-            'sumTotalCurrentSubscriptionDuesPaid' => PaymentTransaction::whereIn('transaction_type', TransactionType::subscriptionValues())
+            'sumTotalCurrentSubscriptionDuesPaid' => PaymentTransaction::inFund(Fund::General)->whereIn('transaction_type', TransactionType::subscriptionValues())
                 ->where('item', $currentYear)
                 ->sum('amount'),
         ];
@@ -62,7 +63,7 @@ class FinanceReports
 
     public function safe(): array
     {
-        $safe = fn (): Builder => PaymentTransaction::query()->where(fn ($q) => $q
+        $safe = fn (): Builder => PaymentTransaction::query()->inFund(Fund::General)->where(fn ($q) => $q
             ->where('account', Account::Safe->value)
             ->orWhereNull('account'));
 
@@ -81,6 +82,7 @@ class FinanceReports
     public function bank(): array
     {
         $transactions = PaymentTransaction::query()
+            ->inFund(Fund::General)
             ->where(fn ($q) => $q
                 ->where('account', Account::Bank->value)
                 ->orWhereIn('transaction_type', [TransactionType::LegacyBankDeposit->value, TransactionType::LegacyBankWithdrawal->value]))

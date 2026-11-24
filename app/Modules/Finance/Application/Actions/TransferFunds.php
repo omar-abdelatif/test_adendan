@@ -6,6 +6,7 @@ use App\Modules\Finance\Application\Ledger;
 use App\Modules\Finance\Domain\Enums\Account;
 use App\Modules\Finance\Domain\Enums\Channel;
 use App\Modules\Finance\Domain\Enums\Direction;
+use App\Modules\Finance\Domain\Enums\Fund;
 use App\Modules\Finance\Domain\Enums\TransactionType;
 use App\Modules\Finance\Domain\Exceptions\FinanceException;
 use App\Modules\Finance\Domain\LedgerEntry;
@@ -26,17 +27,18 @@ class TransferFunds
 
     public function __construct(private readonly Ledger $ledger, private readonly ImageStorage $images) {}
 
-    public function handle(Account $from, Account $to, Money $amount, UploadedFile $proof, CarbonInterface $date): void
+    /** Both entries stay inside one fund: money never moves between funds here. */
+    public function handle(Account $from, Account $to, Money $amount, UploadedFile $proof, CarbonInterface $date, Fund $fund = Fund::General): void
     {
         if ($from === $to) {
             throw FinanceException::sameAccount();
         }
 
         $proofName = $this->images->store($proof, self::PROOF_FOLDER);
-        $item = "تحويل من {$from->label()} إلى {$to->label()}";
+        $item = "تحويل من {$from->label()} إلى {$to->label()}".($fund === Fund::General ? '' : " · {$fund->label()}");
 
         try {
-            DB::transaction(function () use ($from, $to, $amount, $proofName, $item, $date) {
+            DB::transaction(function () use ($from, $to, $amount, $proofName, $item, $date, $fund) {
                 foreach ([[$from, Direction::Out], [$to, Direction::In]] as [$account, $direction]) {
                     $this->ledger->record(new LedgerEntry(
                         type: TransactionType::Transfer,
@@ -47,6 +49,7 @@ class TransferFunds
                         channel: Channel::Transfer,
                         date: $date,
                         proofImage: self::PROOF_FOLDER.'/'.$proofName,
+                        fund: $fund,
                     ));
                 }
             });

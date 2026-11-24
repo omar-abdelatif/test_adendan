@@ -20,6 +20,8 @@ enum TransactionType: string
     case Miscellaneous = 'نثريات';
     case SmsSubscription = 'اشتراك';
     case SmsRenewal = 'تجديد';
+    // A donation changed or removed after it was recorded: the entry that undoes it.
+    case DonationCorrection = 'تصحيح تبرع';
 
     // Legacy spellings found in existing rows.
     case LegacyDonations = 'التبرعات';

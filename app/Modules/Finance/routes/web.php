@@ -12,6 +12,9 @@ use App\Modules\Finance\Http\Controllers\Admin\DonorsController;
 use App\Modules\Finance\Http\Controllers\Admin\DuesController;
 use App\Modules\Finance\Http\Controllers\Admin\ExpensesController;
 use App\Modules\Finance\Http\Controllers\Admin\FinanceReportsController;
+use App\Modules\Finance\Http\Controllers\Admin\FundAccountsController;
+use App\Modules\Finance\Http\Controllers\Admin\FundDonationsController;
+use App\Modules\Finance\Http\Controllers\Admin\FundDonorsController;
 use App\Modules\Finance\Http\Controllers\Admin\MemberAccountController;
 use App\Modules\Finance\Http\Controllers\Admin\OuterDonationsController;
 use App\Modules\Finance\Http\Controllers\Admin\TransactionImportController;
@@ -71,4 +74,31 @@ Route::prefix('donators')->controller(DonorsController::class)->group(function (
     Route::post('donators/store', 'store')->name('donators.store');
     Route::post('donators/update', 'update')->name('donators.update');
     Route::delete('donators/remove/{donor}', 'destroy')->name('donators.remove');
+});
+
+/*
+ * The sponsorship and new-tombs funds: donors, donations, and each fund's safe
+ * and bank. {fund} is "sponsorship" or "new_tombs"; FundAccess checks the
+ * fund's permission and refuses the association's fund, which has its own pages.
+ */
+Route::prefix('funds/{fund}')->name('funds.')->group(function () {
+    Route::controller(FundDonorsController::class)->group(function () {
+        Route::get('donors', 'index')->name('donors');
+        Route::post('donors', 'store')->name('donors.store');
+        Route::get('donors/{donor}', 'show')->name('donors.show');
+        Route::put('donors/{donor}', 'update')->name('donors.update');
+    });
+    Route::controller(FundDonationsController::class)->group(function () {
+        Route::get('donations', 'report')->name('donations');
+        Route::get('donations/export', 'export')->name('donations.export');
+        Route::post('donations', 'store')->name('donations.store');
+        Route::put('donations/{donation}', 'update')->name('donations.update');
+        Route::delete('donations/{donation}', 'destroy')->name('donations.destroy');
+        Route::get('donations/{donation}/receipt', 'receipt')->name('donations.receipt');
+    });
+    Route::controller(FundAccountsController::class)->group(function () {
+        Route::get('accounts', 'show')->name('accounts');
+        Route::get('accounts/export', 'export')->name('accounts.export');
+        Route::post('accounts/transfer', 'transfer')->name('accounts.transfer');
+    });
 });

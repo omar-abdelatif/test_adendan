@@ -11,6 +11,7 @@ use App\Modules\Finance\Application\Treasury;
 use App\Modules\Finance\Domain\Enums\Account;
 use App\Modules\Finance\Domain\Enums\Direction;
 use App\Modules\Finance\Domain\Enums\DueType;
+use App\Modules\Finance\Domain\Enums\Fund;
 use App\Modules\Finance\Domain\Enums\TransactionType;
 use App\Modules\Finance\Domain\FiscalCalendar;
 use App\Modules\Members\Domain\MemberStatus;
@@ -37,6 +38,7 @@ class DashboardOverview
     public function balances(): array
     {
         $today = PaymentTransaction::query()
+            ->inFund(Fund::General)
             ->where('transaction_cat', Direction::In->value)
             ->whereNotIn('transaction_type', TransactionType::transferValues())
             ->whereDate('payment_date', now()->toDateString());
@@ -99,6 +101,7 @@ class DashboardOverview
     public function recentTransactions(int $limit = 6): Collection
     {
         return PaymentTransaction::query()
+            ->inFund(Fund::General)
             ->with('subscriber:id,member_id,name')
             ->latest('id')
             ->limit($limit)
@@ -127,6 +130,7 @@ class DashboardOverview
         $end = $start->addYear();
 
         $totals = PaymentTransaction::query()
+            ->inFund(Fund::General)
             ->where('transaction_cat', Direction::In->value)
             ->whereNotIn('transaction_type', TransactionType::transferValues())
             ->where('payment_date', '>=', $start->toDateString())

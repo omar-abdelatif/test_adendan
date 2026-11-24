@@ -2,7 +2,8 @@
 
 namespace Tests\Feature\Security;
 
-use App\Models\Tombs;
+use App\Models\CemeteryRegion;
+use App\Models\CemeteryTomb;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -59,13 +60,14 @@ class AccessControlTest extends TestCase
     public function test_deleting_needs_a_delete_request_not_a_link(): void
     {
         $this->actingAs($this->staff(['المقابر']));
-        $tomb = Tombs::create(['title' => 'مقبرة', 'tomb_type' => 'عائلية', 'tomb_specialization' => 'رجال', 'region' => 'أدندان']);
+        $region = CemeteryRegion::create(['name' => 'أدندان', 'slug' => 'adendan']);
+        $tomb = CemeteryTomb::create(['region_id' => $region->id, 'name' => 'مقبرة', 'kind' => 'lahd', 'serves' => 'men']);
 
         // A GET (a link or an <img src>) can no longer delete anything.
-        $this->get("/admin/tomb/tombs/delete/{$tomb->id}")->assertStatus(405);
+        $this->get("/admin/cemeteries/tombs/{$tomb->id}")->assertOk();
         $this->assertNotNull($tomb->fresh());
 
-        $this->delete("/admin/tomb/tombs/delete/{$tomb->id}")->assertSessionHas('alert-type', 'success');
+        $this->delete("/admin/cemeteries/tombs/{$tomb->id}")->assertSessionHas('alert-type', 'success');
         $this->assertNull($tomb->fresh());
     }
 

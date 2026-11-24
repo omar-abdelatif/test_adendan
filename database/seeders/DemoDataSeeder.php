@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Finance\Domain\Enums\Fund;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -662,11 +663,12 @@ class DemoDataSeeder extends Seeder
 
     private function setBalance(string $table, int $amount): void
     {
-        $id = DB::table($table)->orderBy('id')->value('id');
+        // The association's balance row; sponsorship and new-tomb funds keep their own rows.
+        $id = DB::table($table)->where('fund', Fund::General->value)->orderBy('id')->value('id');
         $now = self::TODAY.' 13:05:30';
         $id
             ? DB::table($table)->where('id', $id)->update(['amount' => $amount, 'updated_at' => $now])
-            : DB::table($table)->insert(['amount' => $amount, 'created_at' => $now, 'updated_at' => $now]);
+            : DB::table($table)->insert(['fund' => Fund::General->value, 'amount' => $amount, 'created_at' => $now, 'updated_at' => $now]);
     }
 
     /* ------------------------------------------------------------------ directory */

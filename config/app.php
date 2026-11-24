@@ -1,11 +1,13 @@
 <?php
 
 use App\Modules\Access\AccessServiceProvider;
+use App\Modules\Cemeteries\CemeteriesServiceProvider;
 use App\Modules\Content\ContentServiceProvider;
 use App\Modules\Directory\DirectoryServiceProvider;
 use App\Modules\Finance\FinanceServiceProvider;
 use App\Modules\Members\MembersServiceProvider;
 use App\Modules\Messaging\MessagingServiceProvider;
+use App\Modules\Sponsorship\SponsorshipServiceProvider;
 use App\Providers\AppServiceProvider;
 use App\Providers\EventServiceProvider;
 use App\Providers\RouteServiceProvider;
@@ -236,6 +238,8 @@ return [
         MembersServiceProvider::class,
         ContentServiceProvider::class,
         DirectoryServiceProvider::class,
+        CemeteriesServiceProvider::class,
+        SponsorshipServiceProvider::class,
         AccessServiceProvider::class,
 
     ],

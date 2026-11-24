@@ -3,9 +3,9 @@
 namespace App\Modules\Members\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\CemeteryTomb;
 use App\Models\CostYears;
 use App\Models\Subscribers;
-use App\Models\Tombs;
 use App\Modules\Finance\Domain\FiscalCalendar;
 use App\Modules\Members\Application\Actions\IssueAppPasswords;
 use App\Modules\Members\Application\Actions\ManageMember;
@@ -84,7 +84,7 @@ class MembersController extends Controller
 
     public function edit(Subscribers $subscriber)
     {
-        return view('pages.subscribers.update_subscriber', ['subscriber' => $subscriber, 'tombs' => Tombs::orderBy('title')->get()]);
+        return view('pages.subscribers.update_subscriber', ['subscriber' => $subscriber, 'tombs' => CemeteryTomb::orderBy('name')->get(['id', 'name'])]);
     }
 
     public function update(MemberRequest $request, ManageMember $members)

@@ -27,11 +27,12 @@ class Ledger
         return DB::transaction(function () use ($entry, $allowOverdraft) {
             if ($entry->account !== null) {
                 $entry->direction === Direction::In
-                    ? $this->treasury->credit($entry->account, $entry->amount)
-                    : $this->treasury->debit($entry->account, $entry->amount, $allowOverdraft);
+                    ? $this->treasury->credit($entry->account, $entry->amount, $entry->fund)
+                    : $this->treasury->debit($entry->account, $entry->amount, $allowOverdraft, $entry->fund);
             }
 
             return PaymentTransaction::create([
+                'fund' => $entry->fund->value,
                 'member_id' => $entry->memberId,
                 'amount' => $entry->amount->toPounds(),
                 'item' => $entry->item,

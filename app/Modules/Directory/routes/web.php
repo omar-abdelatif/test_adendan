@@ -4,17 +4,12 @@
  * Directory dashboard routes (prefix "admin", web + auth). URLs and names unchanged.
  */
 
-use App\Modules\Directory\Http\Controllers\Admin\TombsController;
 use App\Modules\Directory\Http\Controllers\Admin\WeddingsController;
 use App\Modules\Directory\Http\Controllers\Admin\WorkersController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('tomb')->controller(TombsController::class)->group(function () {
-    Route::get('tombs/all', 'index')->name('tomb.all');
-    Route::post('tombs/store', 'store')->name('tomb.store');
-    Route::post('tombs/update', 'update')->name('tomb.update');
-    Route::delete('tombs/delete/{tomb}', 'destroy')->name('tomb.delete');
-});
+// Tombs moved to the Cemeteries module; the old address still lands on its overview.
+Route::redirect('tomb/tombs/all', '/admin/cemeteries')->name('tomb.all');
 
 Route::prefix('weddings')->controller(WeddingsController::class)->group(function () {
     Route::get('weddings/all', 'index')->name('weddings.all');

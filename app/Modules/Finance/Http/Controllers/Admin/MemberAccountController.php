@@ -5,6 +5,7 @@ namespace App\Modules\Finance\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Subscribers;
 use App\Modules\Finance\Domain\Enums\DueType;
+use App\Modules\Finance\Domain\Enums\Fund;
 
 /** One member's payments and outstanding dues. */
 class MemberAccountController extends Controller
@@ -22,7 +23,7 @@ class MemberAccountController extends Controller
 
         return view('pages.subscriptions.subscriptions_details', [
             'subscriber' => $subscriber,
-            'subscriptions' => $subscriber->paymentTransactions()->latest('id')->get(),
+            'subscriptions' => $subscriber->paymentTransactions()->inFund(Fund::General)->latest('id')->get(),
             'subDue' => $subDue,
             'donDue' => $donDue,
             'totalSubscriptionAmount' => $subDue->sum('amount_remaining'),

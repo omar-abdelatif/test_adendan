@@ -58,6 +58,11 @@ class Subscribers extends Authenticatable
         return $this->hasMany(Due::class, 'member_id', 'member_id');
     }
 
+    /**
+     * Every fund's rows; the member's screens narrow this with inFund(Fund::General).
+     *
+     * @return HasMany<PaymentTransaction, $this>
+     */
     public function paymentTransactions(): HasMany
     {
         return $this->hasMany(PaymentTransaction::class, 'member_id', 'member_id');
@@ -68,9 +73,10 @@ class Subscribers extends Authenticatable
         return $this->hasMany(Donations::class);
     }
 
+    /** The tomb the member's family uses, matched by its name. @return BelongsTo<CemeteryTomb, $this> */
     public function tomb(): BelongsTo
     {
-        return $this->belongsTo(Tombs::class, 'tomb_name', 'title');
+        return $this->belongsTo(CemeteryTomb::class, 'tomb_name', 'name');
     }
 
     public function smssubscribers(): HasOne

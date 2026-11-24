@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 
@@ -23,6 +24,17 @@ class Donators extends Model
     public function outerdonations()
     {
         return $this->hasMany(OuterDonations::class);
+    }
+
+    /**
+     * Donations to the sponsorship and new-tombs funds. The same donors table
+     * serves every fund, so one person keeps one record whatever they give to.
+     *
+     * @return HasMany<FundDonation, $this>
+     */
+    public function fundDonations(): HasMany
+    {
+        return $this->hasMany(FundDonation::class, 'donator_id');
     }
 
     protected function getDynamicLogName(): string

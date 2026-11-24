@@ -74,7 +74,7 @@
                     <div id="tab-health" class="nb-form-grid" role="tabpanel" hidden>
                         <label class="nb-check nb-span-full"><input type="checkbox" name="status" value="1" @checked((int) $m->status === 2)> المشترك متوفي</label>
                         <div class="nb-span-full" data-nb-when="status:1">
-                            <x-nb.field label="اسم المقبرة" name="tomb_name" type="select" :options="$tombs->pluck('title', 'title')->all()" :value="$m->tomb_name" />
+                            <x-nb.field label="اسم المقبرة" name="tomb_name" type="select" :options="$tombs->pluck('name', 'name')->all()" :value="$m->tomb_name" />
                         </div>
                         <div class="nb-alert nb-alert--gold nb-span-full"><i data-feather="info"></i><span>لما تعلّم إن المشترك متوفي، حالته بتتغير ومبيتحسبش عليه اشتراك.</span></div>
                     </div>

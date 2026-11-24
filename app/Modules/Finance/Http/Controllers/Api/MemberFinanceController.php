@@ -4,6 +4,7 @@ namespace App\Modules\Finance\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Finance\Domain\Enums\DueType;
+use App\Modules\Finance\Domain\Enums\Fund;
 use App\Modules\Finance\Domain\Enums\TransactionType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,7 @@ class MemberFinanceController extends Controller
 {
     public function subscriptionPayments(Request $request): JsonResponse
     {
-        return $this->ok($request->user()->paymentTransactions()
+        return $this->ok($request->user()->paymentTransactions()->inFund(Fund::General)
             ->where(fn ($q) => $q
                 ->whereIn('transaction_type', TransactionType::subscriptionValues())
                 // Older online payments were stored as 'اشتراك' (the SMS spelling) whatever they paid for.
@@ -25,14 +26,14 @@ class MemberFinanceController extends Controller
 
     public function donationPayments(Request $request): JsonResponse
     {
-        return $this->ok($request->user()->paymentTransactions()
+        return $this->ok($request->user()->paymentTransactions()->inFund(Fund::General)
             ->whereIn('transaction_type', TransactionType::donationValues())
             ->latest('id')->get());
     }
 
     public function smsPayments(Request $request): JsonResponse
     {
-        return $this->ok($request->user()->paymentTransactions()
+        return $this->ok($request->user()->paymentTransactions()->inFund(Fund::General)
             ->whereIn('transaction_type', TransactionType::smsValues())
             ->latest('id')->get());
     }

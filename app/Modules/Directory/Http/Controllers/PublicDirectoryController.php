@@ -30,7 +30,7 @@ class PublicDirectoryController extends Controller
 
     public function tombs(): JsonResponse
     {
-        return response()->json(Tombs::all());
+        return response()->json(Tombs::with('regionRecord')->orderBy('name')->get());
     }
 
     public function weddings(): JsonResponse

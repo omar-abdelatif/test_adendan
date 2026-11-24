@@ -8,6 +8,7 @@ use App\Models\SMSFEES;
 use App\Models\SMSMSGS;
 use App\Models\SMSSubscribers;
 use App\Models\Subscribers;
+use App\Modules\Finance\Domain\Enums\Fund;
 use App\Modules\Finance\Domain\Enums\TransactionType;
 use App\Modules\Members\Domain\MemberStatus;
 use App\Modules\Messaging\Application\SmsCampaigns;
@@ -38,7 +39,7 @@ class SmsController extends Controller
     {
         return view('pages.sms.index', [
             'sms' => SMSMSGS::latest('id')->get(),
-            'totalAmount' => PaymentTransaction::whereIn('transaction_type', TransactionType::smsValues())->sum('amount'),
+            'totalAmount' => PaymentTransaction::inFund(Fund::General)->whereIn('transaction_type', TransactionType::smsValues())->sum('amount'),
             'nonMembers' => SMSSubscribers::whereNull('member_id')->count(),
             'members' => SMSSubscribers::whereNotNull('member_id')->count(),
             'fees' => SMSFEES::query()->orderBy('id')->first(),

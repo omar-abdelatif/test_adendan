@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Modules\Finance\Domain\Enums\Fund;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $item
  * @property string|null $account
  * @property string|null $proof_img
+ * @property string $fund a Fund value; 'general' for every row from before funds existed
  * @property int|string|null $inv_no int locally; text on servers where image names were stored in it
  * @property-read string|null $proof_url
  */
@@ -39,7 +42,19 @@ class PaymentTransaction extends Model
         'paymob_status',
         'account',
         'proof_img',
+        'fund',
     ];
+
+    /**
+     * Rows of one fund. The association's screens and reports read Fund::General
+     * only, so sponsorship and new-tomb money never shows in its totals.
+     *
+     * @param  Builder<self>  $query
+     */
+    public function scopeInFund(Builder $query, Fund $fund): void
+    {
+        $query->where('fund', $fund->value);
+    }
 
     public function subscriber(): BelongsTo
     {

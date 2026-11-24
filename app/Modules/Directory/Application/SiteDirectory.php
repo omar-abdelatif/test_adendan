@@ -24,7 +24,7 @@ class SiteDirectory
     /** Tombs grouped by region name. */
     public function tombsByRegion(): Collection
     {
-        return Tombs::orderBy('region')->orderBy('title')->get()->groupBy('region');
+        return Tombs::with('regionRecord')->orderBy('name')->get()->sortBy('region')->groupBy('region');
     }
 
     /** Upcoming weddings grouped by "<Arabic month> <year>", in date order. */

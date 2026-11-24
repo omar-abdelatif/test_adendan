@@ -77,7 +77,34 @@
             <a class="nb-side__link {{ $on('weddings.*') }}" href="{{ route('weddings.all') }}"><i data-feather="heart"></i>الأفراح</a>
         @endcan
 
-        @canany(['مجلس الادارة', 'اللجان', 'الحرفيين', 'المقابر'])
+        @php($fundPage = fn (string $fund) => request()->routeIs('funds.*') && (request()->route('fund')?->value ?? request()->route('fund')) === $fund)
+        @canany(['الكفالة', 'خزنة الكفالة'])
+            <div class="nb-side__group">الكفالة</div>
+        @endcanany
+        @can('الكفالة')
+            <a class="nb-side__link {{ $on('sponsorship.cases.*') }}" href="{{ route('sponsorship.cases.index') }}"><i data-feather="users"></i>الحالات</a>
+            <a class="nb-side__link {{ $fundPage('sponsorship') && ! request()->routeIs('funds.accounts*') ? 'is-active' : '' }}" href="{{ route('funds.donors', 'sponsorship') }}"><i data-feather="gift"></i>المتبرعين</a>
+        @endcan
+        @can('خزنة الكفالة')
+            <a class="nb-side__link {{ $fundPage('sponsorship') && request()->routeIs('funds.accounts*') ? 'is-active' : '' }}" href="{{ route('funds.accounts', 'sponsorship') }}"><i data-feather="archive"></i>الخزنة والبنك</a>
+        @endcan
+        @can('الكفالة')
+            <a class="nb-side__link {{ $on('sponsorship.reports*') }}" href="{{ route('sponsorship.reports') }}"><i data-feather="bar-chart-2"></i>تقرير الكفالة</a>
+        @endcan
+
+        @canany(['المقابر', 'خزنة المقابر الجديدة'])
+            <div class="nb-side__group">المقابر</div>
+        @endcanany
+        @can('المقابر')
+            <a class="nb-side__link {{ $on('cemeteries.index', 'cemeteries.tombs.*', 'tomb.all') }}" href="{{ route('cemeteries.index') }}"><i data-feather="map"></i>المقابر والعيون</a>
+            <a class="nb-side__link {{ $on('cemeteries.burials.*') }}" href="{{ route('cemeteries.burials.index') }}"><i data-feather="moon"></i>المتوفيين</a>
+            <a class="nb-side__link {{ $fundPage('new_tombs') && ! request()->routeIs('funds.accounts*') ? 'is-active' : '' }}" href="{{ route('funds.donors', 'new_tombs') }}"><i data-feather="gift"></i>تبرعات المقابر الجديدة</a>
+        @endcan
+        @can('خزنة المقابر الجديدة')
+            <a class="nb-side__link {{ $fundPage('new_tombs') && request()->routeIs('funds.accounts*') ? 'is-active' : '' }}" href="{{ route('funds.accounts', 'new_tombs') }}"><i data-feather="archive"></i>خزنة المقابر الجديدة</a>
+        @endcan
+
+        @canany(['مجلس الادارة', 'اللجان', 'الحرفيين'])
             <div class="nb-side__group">الجمعية والدليل</div>
         @endcanany
         @can('مجلس الادارة')
@@ -85,9 +112,6 @@
         @endcan
         @can('اللجان')
             <a class="nb-side__link {{ $on('association.*') }}" href="{{ route('association.all') }}"><i data-feather="layers"></i>اللجان</a>
-        @endcan
-        @can('المقابر')
-            <a class="nb-side__link {{ $on('tomb.*') }}" href="{{ route('tomb.all') }}"><i data-feather="moon"></i>المقابر</a>
         @endcan
         @can('الحرفيين')
             <a class="nb-side__link {{ $on('workers.*') }}" href="{{ route('workers.all') }}"><i data-feather="briefcase"></i>الحرفيين</a>

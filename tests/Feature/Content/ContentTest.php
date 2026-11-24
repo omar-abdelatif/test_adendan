@@ -90,7 +90,7 @@ class ContentTest extends TestCase
         $this->actingAsStaff('الاخبار', 'مجلس الادارة', 'اللجان', 'المقابر', 'الافراح', 'الحرفيين', 'المتبرعين');
         $news = News::factory()->create();
 
-        foreach (['news/all', "news/all_news/all_thumbs/{$news->id}", 'board/board/all', 'association/associations/all', 'tomb/tombs/all', 'weddings/weddings/all', 'workers/workers/all', 'donators/donators/all'] as $page) {
+        foreach (['news/all', "news/all_news/all_thumbs/{$news->id}", 'board/board/all', 'association/associations/all', 'cemeteries', 'cemeteries/burials', 'weddings/weddings/all', 'workers/workers/all', 'donators/donators/all'] as $page) {
             $this->get('/admin/'.$page)->assertOk();
         }
     }
