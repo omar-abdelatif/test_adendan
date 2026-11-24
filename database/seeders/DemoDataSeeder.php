@@ -4,12 +4,13 @@ namespace Database\Seeders;
 
 use App\Modules\Finance\Domain\Enums\Fund;
 use Carbon\CarbonImmutable;
+use Database\Seeders\Concerns\GuardsDemoData;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use RuntimeException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -24,6 +25,8 @@ use Spatie\Permission\Models\Role;
  */
 class DemoDataSeeder extends Seeder
 {
+    use GuardsDemoData;
+
     private const TODAY = '2026-11-21';
 
     private const COST = [2023 => 120, 2024 => 160, 2025 => 200, 2026 => 240, 2027 => 300];
@@ -48,9 +51,7 @@ class DemoDataSeeder extends Seeder
 
     public function run(): void
     {
-        if (app()->environment('production')) {
-            throw new RuntimeException('Demo data is for local databases only.');
-        }
+        $this->ensureDemoDataAllowed();
         if (DB::table('subscribers')->exists()) {
             $this->command->warn('The database already has members; demo data was not added.');
 
@@ -673,6 +674,25 @@ class DemoDataSeeder extends Seeder
 
     /* ------------------------------------------------------------------ directory */
 
+    /** Finds or creates a cemetery region the way the cemeteries migration names them ("15مايو" → "15 مايو"). */
+    private function cemeteryRegion(string $name, string $now): int
+    {
+        $name = trim((string) preg_replace('/^(\d+)\s*/u', '$1 ', $name));
+        $existing = DB::table('cemetery_regions')->where('name', $name)->value('id');
+        if ($existing) {
+            return (int) $existing;
+        }
+
+        $slug = Str::slug($name);
+        if ($slug === '' || DB::table('cemetery_regions')->where('slug', $slug)->exists()) {
+            $slug = 'region-'.(DB::table('cemetery_regions')->count() + 1);
+        }
+
+        return (int) DB::table('cemetery_regions')->insertGetId([
+            'name' => $name, 'slug' => $slug, 'is_village' => $name === 'القرية', 'created_at' => $now, 'updated_at' => $now,
+        ]);
+    }
+
     private function directory(): void
     {
         $now = self::TODAY.' 09:00:00';
@@ -685,7 +705,29 @@ class DemoDataSeeder extends Seeder
             ['مقبرة أكتوبر الجديدة', 'أكتوبر', 'لحد', 'رجال', 'فتحي عبد النبي', '01559900112'], ['مقبرة الغفير سيدات', 'الغفير', 'عيون', 'سيدات', 'رجب سعيد', '01228899001'],
         ];
         foreach ($tombs as $t) {
-            DB::table('tombs')->insert(['title' => $t[0], 'region' => $t[1], 'tomb_specialization' => $t[2], 'tomb_type' => $t[3], 'tomb_guard_name' => $t[4], 'tomb_guard_number' => (int) $t[5], 'location' => 'https://maps.google.com/?q='.urlencode($t[0]), 'created_at' => $now, 'updated_at' => $now]);
+            $location = 'https://maps.google.com/?q='.urlencode($t[0]);
+            if (Schema::hasTable('tombs')) {
+                // Before the cemeteries migration: the directory's own table.
+                DB::table('tombs')->insert(['title' => $t[0], 'region' => $t[1], 'tomb_specialization' => $t[2], 'tomb_type' => $t[3], 'tomb_guard_name' => $t[4], 'tomb_guard_number' => (int) $t[5], 'location' => $location, 'created_at' => $now, 'updated_at' => $now]);
+
+                continue;
+            }
+            // After it (a fresh database): one tombs table for the cemeteries module and the directory.
+            DB::table('cemetery_tombs')->insert([
+                'region_id' => $this->cemeteryRegion($t[1], $now),
+                'name' => $t[0],
+                'kind' => $t[2] === 'لحد' ? 'lahd' : 'eyes',
+                'serves' => match ($t[3]) {
+                    'سيدات' => 'women',
+                    'رجال' => 'men',
+                    default => 'mixed',
+                },
+                'location' => $location,
+                'guard_name' => $t[4],
+                'guard_phone' => $t[5],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
         }
 
         $days = ['السبت', 'الأحد', 'الأثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'];

@@ -9,6 +9,7 @@ use App\Models\Subscribers;
 use App\Modules\Cemeteries\Application\Actions\ManageBurials;
 use App\Modules\Cemeteries\Application\Actions\ManageTombs;
 use Carbon\CarbonImmutable;
+use Database\Seeders\Concerns\GuardsDemoData;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
@@ -21,6 +22,8 @@ use RuntimeException;
  */
 class CemeteryDemoSeeder extends Seeder
 {
+    use GuardsDemoData;
+
     /** tomb name => [chambers, burials as [chamber, gender, places]] */
     private const PLAN = [
         'مقبرة أدندان الكبرى' => [22, 'lahd-male', 8],
@@ -44,9 +47,7 @@ class CemeteryDemoSeeder extends Seeder
 
     public function run(ManageTombs $tombs, ManageBurials $burials): void
     {
-        if (app()->isProduction()) {
-            throw new RuntimeException('CemeteryDemoSeeder is for local demo data only.');
-        }
+        $this->ensureDemoDataAllowed();
         if (Burial::exists()) {
             throw new RuntimeException('There are burials already; the cemetery demo data is not added twice.');
         }

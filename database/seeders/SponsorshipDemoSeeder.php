@@ -13,6 +13,7 @@ use App\Modules\Shared\Domain\Money;
 use App\Modules\Sponsorship\Application\Actions\ManageCases;
 use App\Modules\Sponsorship\Domain\Enums\CaseDocument;
 use Carbon\CarbonImmutable;
+use Database\Seeders\Concerns\GuardsDemoData;
 use Illuminate\Database\Seeder;
 use Illuminate\Http\UploadedFile;
 use RuntimeException;
@@ -28,6 +29,8 @@ use RuntimeException;
  */
 class SponsorshipDemoSeeder extends Seeder
 {
+    use GuardsDemoData;
+
     /** [name, age, governorate, marital, health, sons, daughters, monthly, pension, other, type, period] */
     private const CASES = [
         ['فاطمة إدريس عوض', 48, 'أسوان', 'widowed', 'ضغط وسكر', 2, 3, 0, 1600, 500, 'cash', 'monthly'],
@@ -57,9 +60,7 @@ class SponsorshipDemoSeeder extends Seeder
 
     public function run(ManageCases $cases, RecordFundDonation $donations, TransferFunds $transfer): void
     {
-        if (app()->isProduction()) {
-            throw new RuntimeException('SponsorshipDemoSeeder is for local demo data only.');
-        }
+        $this->ensureDemoDataAllowed();
         if (SponsorshipCase::exists() || FundDonation::exists()) {
             throw new RuntimeException('There are cases or fund donations already; the sponsorship demo data is not added twice.');
         }

@@ -52,6 +52,9 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    // Lets the demo seeders run on a test or presentation server (never the real one).
+    'demo_data_allowed' => (bool) env('DEMO_DATA_ALLOWED', false),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment
