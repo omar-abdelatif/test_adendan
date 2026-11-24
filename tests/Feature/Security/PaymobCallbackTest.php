@@ -18,6 +18,7 @@ class PaymobCallbackTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['paymob.live_integration_ids' => ['4991596']]);
 
         Subscribers::create([
             'member_id' => 15, 'name' => 'عضو تجريبي', 'slug' => 'member-15',
@@ -78,7 +79,7 @@ class PaymobCallbackTest extends TestCase
 
     public function test_callback_without_hmac_is_rejected_and_records_nothing(): void
     {
-        $this->sendCallback($this->obj(), null)->assertStatus(403);
+        $this->sendCallback($this->obj(), null)->assertStatus(401);
 
         $this->assertSame(0, PaymentTransaction::count());
         $this->assertEquals(300, Due::first()->amount_remaining);
@@ -88,7 +89,7 @@ class PaymobCallbackTest extends TestCase
     {
         $obj = $this->obj();
 
-        $this->sendCallback($obj, $this->signed($obj, 'attacker-guess'))->assertStatus(403);
+        $this->sendCallback($obj, $this->signed($obj, 'attacker-guess'))->assertStatus(401);
 
         $this->assertSame(0, PaymentTransaction::count());
     }
@@ -97,7 +98,7 @@ class PaymobCallbackTest extends TestCase
     {
         $hmac = $this->signed($this->obj());
 
-        $this->sendCallback($this->obj(['amount_cents' => 30000]), $hmac)->assertStatus(403);
+        $this->sendCallback($this->obj(['amount_cents' => 30000]), $hmac)->assertStatus(401);
 
         $this->assertEquals(300, Due::first()->amount_remaining);
     }
@@ -127,11 +128,12 @@ class PaymobCallbackTest extends TestCase
         $this->assertEquals(200, Due::first()->amount_remaining);
     }
 
-    public function test_short_merchant_order_id_is_rejected_instead_of_crashing(): void
+    public function test_short_merchant_order_id_records_nothing_instead_of_crashing(): void
     {
         $obj = $this->obj(['order' => ['merchant_order_id' => '15-2026']]);
 
-        $this->sendCallback($obj, $this->signed($obj))->assertStatus(400);
+        // Signed by Paymob, so answered 200 (a retry would not help), but nothing is recorded.
+        $this->sendCallback($obj, $this->signed($obj))->assertOk();
 
         $this->assertSame(0, PaymentTransaction::count());
     }

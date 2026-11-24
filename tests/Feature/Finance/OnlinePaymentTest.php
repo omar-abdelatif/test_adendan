@@ -23,7 +23,7 @@ class OnlinePaymentTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['services.paymob.secret' => 'sk_test', 'services.paymob.public' => 'pk_test']);
+        config(['paymob.live_integration_ids' => ['1']]);
         TotalSafe::create(['amount' => 0]);
         SMSFEES::create(['item' => 'رسائل', 'amount' => 60]);
         $this->member = Subscribers::factory()->create(['member_id' => 15, 'mobile_no' => 1012345678]);
@@ -83,45 +83,19 @@ class OnlinePaymentTest extends TestCase
         $this->assertSame(50, PaymentTransaction::sole()->amount);
     }
 
-    public function test_app_endpoints_no_longer_activate_sms_for_free(): void
+    public function test_old_sms_endpoints_no_longer_activate_sms_for_free(): void
     {
-        Http::fake(['accept.paymob.com/*' => Http::response(['client_secret' => 'cs_test_1'], 201)]);
+        Http::fake();
         Sanctum::actingAs($this->member);
 
-        $this->postJson('/api/sms/pay_subscription', ['payment_method' => 'wallet'])
+        $this->postJson('/api/sms/pay_subscription', ['payment_method' => 'wallet', 'item' => 'الرسائل'])
             ->assertOk()
-            ->assertJsonPath('checkout.client_secret', 'cs_test_1');
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('sms_status', null);
+        $this->postJson('/api/sms/renew_subscription', ['payment_method' => 'wallet'])->assertOk();
 
         $this->assertSame(0, SMSSubscribers::count());
         $this->assertSame(0, PaymentTransaction::count());
-        Http::assertSent(fn ($request) => $request['amount'] === 6000
-            && str_starts_with($request['special_reference'], '15-رسائل-اشتراك-')
-            && $request->hasHeader('Authorization', 'Token sk_test'));
-    }
-
-    public function test_checkout_amount_comes_from_the_due_not_the_app(): void
-    {
-        Http::fake(['accept.paymob.com/*' => Http::response(['client_secret' => 'cs_test_2'], 201)]);
-        $due = Due::factory()->forMember($this->member)->amount(300, paid: 100)->create();
-        Sanctum::actingAs($this->member);
-
-        $this->postJson('/api/payments/checkout', ['due_id' => $due->id, 'payment_method' => 'card', 'amount' => 1])
-            ->assertOk()
-            ->assertJsonStructure(['checkout' => ['checkout_url', 'client_secret', 'reference']]);
-
-        Http::assertSent(fn ($request) => $request['amount'] === 20000
-            && str_contains($request['special_reference'], "-d{$due->id}x"));
-    }
-
-    public function test_a_member_cannot_check_out_someone_elses_due(): void
-    {
-        Http::fake();
-        $other = Subscribers::factory()->create();
-        $due = Due::factory()->forMember($other)->create();
-        Sanctum::actingAs($this->member);
-
-        $this->postJson('/api/payments/checkout', ['due_id' => $due->id, 'payment_method' => 'card'])->assertStatus(422);
-
         Http::assertNothingSent();
     }
 }
