@@ -33,4 +33,36 @@ class FinanceException extends DomainException
     {
         return new self('لا يمكن التحويل إلى نفس الحساب.');
     }
+
+    // Mobile checkout: the app shows these to the member as they are.
+
+    public static function amountAboveRemaining(): self
+    {
+        return new self('المبلغ أكبر من المتبقي عليك');
+    }
+
+    public static function subscriptionAlreadyPaid(): self
+    {
+        return new self('الاشتراك ده مدفوع بالكامل');
+    }
+
+    public static function donationAlreadyPaid(): self
+    {
+        return new self('التبرع ده مدفوع بالكامل');
+    }
+
+    public static function smsFeeMismatch(): self
+    {
+        return new self('مبلغ اشتراك الرسائل غير صحيح');
+    }
+
+    public static function smsAlreadyActive(): self
+    {
+        return new self('خدمة الرسائل مفعّلة عندك بالفعل');
+    }
+
+    public static function checkoutInProgress(): self
+    {
+        return new self('جاري تجهيز الدفع، استنى ثانية وجرّب تاني');
+    }
 }

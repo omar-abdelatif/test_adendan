@@ -2,6 +2,7 @@
 
 namespace App\Modules\Messaging;
 
+use App\Modules\Finance\Domain\Events\OnlinePaymentReceived;
 use App\Modules\Finance\Domain\Events\SmsSubscriptionPaid;
 use App\Modules\Messaging\Console\DeactivateExpiredCommand;
 use App\Modules\Messaging\Console\RemindMonthBeforeCommand;
@@ -13,6 +14,7 @@ use App\Modules\Messaging\Domain\SmsSender;
 use App\Modules\Messaging\Infrastructure\EgyptLinxSender;
 use App\Modules\Messaging\Infrastructure\FcmPushNotifier;
 use App\Modules\Messaging\Listeners\ActivatePaidSmsSubscription;
+use App\Modules\Messaging\Listeners\NotifyMemberOfPayment;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -28,6 +30,7 @@ class MessagingServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Event::listen(SmsSubscriptionPaid::class, ActivatePaidSmsSubscription::class);
+        Event::listen(OnlinePaymentReceived::class, NotifyMemberOfPayment::class);
 
         if ($this->app->runningInConsole()) {
             $this->commands([

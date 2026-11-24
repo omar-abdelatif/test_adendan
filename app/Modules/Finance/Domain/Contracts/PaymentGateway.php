@@ -11,6 +11,7 @@ use App\Modules\Finance\Domain\Online\CheckoutSession;
  */
 interface PaymentGateway
 {
+    /** @throws \RuntimeException when the provider fails or cannot be reached */
     public function createCheckout(CheckoutRequest $request): CheckoutSession;
 
     /**
@@ -19,4 +20,12 @@ interface PaymentGateway
      * @param  array<string, mixed>  $transaction
      */
     public function verifyCallback(array $transaction, ?string $signature): bool;
+
+    /**
+     * Whether the notification is for a live (real money) integration. Sandbox
+     * notifications must never record a payment.
+     *
+     * @param  array<string, mixed>  $transaction
+     */
+    public function isLiveIntegration(array $transaction): bool;
 }
