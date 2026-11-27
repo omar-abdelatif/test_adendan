@@ -46,6 +46,9 @@ class PaymentsController extends Controller
         return response()->json([
             'payment_id' => $payment->public_id,
             'checkout_url' => $payment->checkout_url,
+            'amount' => $payment->amountInPounds(),
+            'fee' => $payment->feeInPounds(),
+            'total' => $payment->chargedCents() / 100,
             'expires_at' => $payment->expires_at->utc()->toIso8601ZuluString(),
         ], $created ? 201 : 200);
     }
@@ -65,6 +68,8 @@ class PaymentsController extends Controller
             'payment_id' => $payment->public_id,
             'status' => $payment->status->value,
             'amount' => $payment->amountInPounds(),
+            'fee' => $payment->feeInPounds(),
+            'total' => $payment->chargedCents() / 100,
             'purpose' => $payment->purpose->value,
             'reference' => $payment->reference ?? '',
         ];

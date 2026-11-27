@@ -48,15 +48,11 @@ class PaymobGateway implements PaymentGateway
                 ->acceptJson()
                 ->timeout(20)
                 ->post($base.'/v1/intention/', [
-                    'amount' => $request->amount->piasters,
+                    'amount' => $request->total()->piasters,
                     'currency' => 'EGP',
                     'payment_methods' => [(int) $integration],
-                    'items' => [[
-                        'name' => $request->description,
-                        'amount' => $request->amount->piasters,
-                        'description' => $request->description,
-                        'quantity' => 1,
-                    ]],
+                    // Paymob requires the items to add up to the amount.
+                    'items' => $this->items($request),
                     'billing_data' => [
                         'first_name' => $firstName,
                         'last_name' => $lastName,
@@ -130,6 +126,27 @@ class PaymobGateway implements PaymentGateway
     }
 
     /** @return array{string, string} */
+    /** @return list<array{name: string, amount: int, description: string, quantity: int}> */
+    private function items(CheckoutRequest $request): array
+    {
+        $items = [[
+            'name' => $request->description,
+            'amount' => $request->amount->piasters,
+            'description' => $request->description,
+            'quantity' => 1,
+        ]];
+        if ($request->fee && ! $request->fee->isZero()) {
+            $items[] = [
+                'name' => 'مصاريف التحويل',
+                'amount' => $request->fee->piasters,
+                'description' => 'مصاريف التحويل',
+                'quantity' => 1,
+            ];
+        }
+
+        return $items;
+    }
+
     private function splitName(string $name): array
     {
         $parts = preg_split('/\s+/u', trim($name), 2) ?: [];

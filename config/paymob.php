@@ -35,6 +35,11 @@ return [
     // Billing email sent to Paymob. Members have none on file, and Paymob rejects "NA".
     'billing_email' => env('PAYMOB_BILLING_EMAIL') ?: 'members@adendan.com',
 
+    // Transfer fee the member pays on top of the amount: fixed part plus a
+    // percentage (275 basis points = 2.75%). Only the amount is credited.
+    'fee_fixed_piasters' => (int) (env('PAYMOB_FEE_FIXED_PIASTERS') ?: 300),
+    'fee_basis_points' => (int) (env('PAYMOB_FEE_BASIS_POINTS') ?: 275),
+
     // How long a checkout stays open before the expiry job marks it expired.
     'checkout_ttl_minutes' => 60,
 ];

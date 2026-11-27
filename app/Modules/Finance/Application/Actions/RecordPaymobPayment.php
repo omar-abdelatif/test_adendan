@@ -56,10 +56,11 @@ class RecordPaymobPayment
 
             $cents = (int) ($transaction['amount_cents'] ?? -1);
             $currency = (string) ($transaction['currency'] ?? '');
-            if ($cents !== $payment->amount_cents || $currency !== $payment->currency) {
+            // Paymob charged the amount plus the fee; only the amount is credited below.
+            if ($cents !== $payment->chargedCents() || $currency !== $payment->currency) {
                 Log::error('Paymob amount mismatch', [
                     'payment_id' => $payment->public_id,
-                    'expected_cents' => $payment->amount_cents,
+                    'expected_cents' => $payment->chargedCents(),
                     'received_cents' => $cents,
                 ]);
                 $payment->update(['status' => OnlineStatus::Failed, 'failure_reason' => 'amount_mismatch']);

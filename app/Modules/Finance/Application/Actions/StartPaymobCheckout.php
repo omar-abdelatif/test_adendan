@@ -12,6 +12,7 @@ use App\Modules\Finance\Domain\Enums\OnlinePurpose;
 use App\Modules\Finance\Domain\Enums\OnlineStatus;
 use App\Modules\Finance\Domain\Exceptions\FinanceException;
 use App\Modules\Finance\Domain\Online\CheckoutRequest;
+use App\Modules\Finance\Domain\TransferFee;
 use App\Modules\Shared\Domain\Money;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Str;
@@ -51,6 +52,8 @@ class StartPaymobCheckout
 
         $reference = $purpose === OnlinePurpose::Sms ? null : trim((string) $reference);
         $this->checkAmount($member, $purpose, $reference, $amount);
+        // Computed here, never taken from the app.
+        $fee = TransferFee::fromConfig()->for($amount);
 
         try {
             $payment = PaymobPayment::create([
@@ -59,6 +62,7 @@ class StartPaymobCheckout
                 'purpose' => $purpose,
                 'reference' => $reference,
                 'amount_cents' => $amount->piasters,
+                'fee_cents' => $fee->piasters,
                 'currency' => 'EGP',
                 'method' => $method,
                 'wallet_number_masked' => $walletNumber ? $this->mask($walletNumber) : null,
@@ -80,6 +84,7 @@ class StartPaymobCheckout
                 customerName: (string) $member->name,
                 customerPhone: $walletNumber ?: $this->phone($member),
                 extras: ['member_id' => $memberId, 'purpose' => $purpose->value, 'reference' => $reference],
+                fee: $fee,
             ));
         } catch (RuntimeException $e) {
             $payment->update(['status' => OnlineStatus::Failed, 'failure_reason' => 'paymob_unavailable']);

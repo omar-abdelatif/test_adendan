@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property OnlinePurpose $purpose
  * @property string|null $reference
  * @property int $amount_cents
+ * @property int $fee_cents
  * @property string $currency
  * @property string $method
  * @property string|null $wallet_number_masked
@@ -36,7 +37,7 @@ use Illuminate\Support\Carbon;
 class PaymobPayment extends Model
 {
     protected $fillable = [
-        'public_id', 'member_id', 'purpose', 'reference', 'amount_cents', 'currency', 'method',
+        'public_id', 'member_id', 'purpose', 'reference', 'amount_cents', 'fee_cents', 'currency', 'method',
         'wallet_number_masked', 'status', 'idempotency_key', 'paymob_order_id', 'paymob_transaction_id',
         'checkout_url', 'expires_at', 'paid_at', 'receipt_inv_no', 'failure_reason', 'callback_payload',
     ];
@@ -45,6 +46,7 @@ class PaymobPayment extends Model
         'purpose' => OnlinePurpose::class,
         'status' => OnlineStatus::class,
         'amount_cents' => 'integer',
+        'fee_cents' => 'integer',
         'member_id' => 'integer',
         'expires_at' => 'datetime',
         'paid_at' => 'datetime',
@@ -57,8 +59,20 @@ class PaymobPayment extends Model
         return $this->belongsTo(Subscribers::class, 'member_id', 'member_id');
     }
 
+    /** What is credited to the member: the amount, without the transfer fee. */
     public function amountInPounds(): float
     {
         return $this->amount_cents / 100;
+    }
+
+    public function feeInPounds(): float
+    {
+        return $this->fee_cents / 100;
+    }
+
+    /** What Paymob charges: the amount plus the transfer fee. */
+    public function chargedCents(): int
+    {
+        return $this->amount_cents + $this->fee_cents;
     }
 }
