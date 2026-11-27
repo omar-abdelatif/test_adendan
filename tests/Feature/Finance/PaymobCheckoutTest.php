@@ -123,19 +123,19 @@ class PaymobCheckoutTest extends TestCase
             ->assertCreated()
             ->assertJsonStructure(['payment_id', 'checkout_url', 'expires_at'])
             // Transfer fee: 3 EGP + 2.75% of 150 (4.125, rounded up to 4.13).
-            ->assertJson(['amount' => 150, 'fee' => 7.13, 'total' => 157.13]);
+            ->assertJson(['amount' => 150, 'fee' => 7.33, 'total' => 157.33]);
 
         $payment = PaymobPayment::sole();
         $this->assertSame('pending', $payment->status->value);
         $this->assertSame(15000, $payment->amount_cents);
-        $this->assertSame(713, $payment->fee_cents);
+        $this->assertSame(733, $payment->fee_cents);
         $this->assertSame(26, strlen($response->json('payment_id')));
         $this->assertStringContainsString('clientSecret=cs_test_1', $response->json('checkout_url'));
         $this->assertMatchesRegularExpression('/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/', $response->json('expires_at'));
         $this->assertSame(1, $this->intentions);
-        Http::assertSent(fn ($r) => $r['amount'] === 15713
-            && array_sum(array_column($r['items'], 'amount')) === 15713
-            && $r['items'][1]['amount'] === 713
+        Http::assertSent(fn ($r) => $r['amount'] === 15733
+            && array_sum(array_column($r['items'], 'amount')) === 15733
+            && $r['items'][1]['amount'] === 733
             && $r['special_reference'] === $payment->public_id
             && $r['payment_methods'] === [(int) self::LIVE_CARD]
             && str_ends_with($r['notification_url'], '/api/payments/paymob/webhook')

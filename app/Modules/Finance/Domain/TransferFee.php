@@ -5,8 +5,11 @@ namespace App\Modules\Finance\Domain;
 use App\Modules\Shared\Domain\Money;
 
 /**
- * What the member pays on top of an online payment to cover Paymob's charge:
- * a fixed part plus a percentage of the amount, rounded up to the piaster.
+ * What the member pays on top of an online payment to cover Paymob's charge.
+ *
+ * Paymob takes a fixed part plus a percentage of the whole amount charged, so
+ * the total is grossed up: after Paymob's cut the association still receives
+ * the full amount. total = ceil((amount + fixed) / (1 - rate)).
  *
  * Only the amount itself is credited to the due; the fee is charged through
  * Paymob and never recorded against the member.
@@ -32,8 +35,9 @@ final class TransferFee
             return Money::zero();
         }
 
-        $percentage = intdiv($amount->piasters * $this->basisPoints + 9999, 10000);
+        $kept = 10000 - $this->basisPoints;
+        $total = intdiv(($amount->piasters + $this->fixedPiasters) * 10000 + $kept - 1, $kept);
 
-        return Money::cents($this->fixedPiasters + $percentage);
+        return Money::cents($total - $amount->piasters);
     }
 }
