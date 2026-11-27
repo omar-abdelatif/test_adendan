@@ -32,6 +32,9 @@ return [
     // Callbacks from any other integration (for example the sandbox ones) record nothing.
     'live_integration_ids' => $ids(env('PAYMOB_LIVE_INTEGRATION_IDS')),
 
+    // Billing email sent to Paymob. Members have none on file, and Paymob rejects "NA".
+    'billing_email' => env('PAYMOB_BILLING_EMAIL') ?: 'members@adendan.com',
+
     // How long a checkout stays open before the expiry job marks it expired.
     'checkout_ttl_minutes' => 60,
 ];

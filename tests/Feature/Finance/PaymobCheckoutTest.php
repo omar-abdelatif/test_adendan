@@ -134,6 +134,8 @@ class PaymobCheckoutTest extends TestCase
             && $r['payment_methods'] === [(int) self::LIVE_CARD]
             && str_ends_with($r['notification_url'], '/api/payments/paymob/webhook')
             && str_ends_with($r['redirection_url'], '/api/pay/callback')
+            // Paymob answers 400 when the billing email is not a valid address.
+            && filter_var($r['billing_data']['email'], FILTER_VALIDATE_EMAIL) !== false
             && $r->hasHeader('Authorization', 'Token sk_test'));
     }
 

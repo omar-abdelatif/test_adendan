@@ -61,7 +61,9 @@ class PaymobGateway implements PaymentGateway
                         'first_name' => $firstName,
                         'last_name' => $lastName,
                         'phone_number' => $request->customerPhone !== '' ? $request->customerPhone : 'NA',
-                        'email' => 'NA',
+                        // The Intention API rejects "NA" here (400 "Enter a valid email
+                        // address"); members have no email on file, so send a fixed one.
+                        'email' => (string) ($this->config['billing_email'] ?? 'members@adendan.com'),
                         'country' => 'EG',
                     ],
                     'special_reference' => $request->reference,
