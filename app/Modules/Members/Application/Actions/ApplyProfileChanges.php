@@ -62,7 +62,7 @@ class ApplyProfileChanges
     /**
      * Staff review the app request in a form and may correct it before approving.
      *
-     * @param  array{name: string, address?: ?string, mobile_no?: ?string, ssn?: ?string, job_title?: ?string, birthdate?: ?string}  $reviewed
+     * @param  array{name?: ?string, address?: ?string, mobile_no?: ?string, ssn?: ?string, job_title?: ?string, birthdate?: ?string}  $reviewed
      */
     public function fromApp(int $memberId, array $reviewed): Subscribers
     {
@@ -73,7 +73,7 @@ class ApplyProfileChanges
 
         return DB::transaction(function () use ($member, $reviewed) {
             $member->update(array_filter([
-                'name' => $reviewed['name'],
+                'name' => $reviewed['name'] ?? null,
                 'address' => $reviewed['address'] ?? null,
                 'mobile_no' => $reviewed['mobile_no'] ?? null,
                 'ssn' => $reviewed['ssn'] ?? null,

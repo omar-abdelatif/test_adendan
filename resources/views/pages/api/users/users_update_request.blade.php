@@ -16,7 +16,7 @@
                 <x-nb.card :title="$member?->name ?? $request->name" :subtitle="'عضوية '.$request->member_id.' · طلب '.$request->created_at?->locale('ar')->diffForHumans()" icon="refresh-cw" tone="gold">
                     <div class="nb-stack-sm">
                         @foreach ($fields as $key => [$label, $column])
-                            @continue(blank($request->{$key}) || ($key === 'name' && $member && $member->name === $request->name))
+                            @continue(blank($request->{$key}) || ($member && (string) $member->{$column} === (string) $request->{$key}))
                             @php($before = $member?->{$column})
                             <div class="nb-row" style="flex-wrap: nowrap; align-items: baseline">
                                 <span class="nb-label" style="width: 110px; flex: none">{{ $label }}</span>

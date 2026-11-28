@@ -76,14 +76,23 @@ class ProfileChangesController extends Controller
 
     public function approveApp(Request $request): JsonResponse
     {
+        // The database keeps phones as numbers, so a request can carry one
+        // without its leading 0 (1012345678); that is still a valid phone.
+        $mobile = preg_replace('/\D/', '', (string) $request->input('mobile_no')) ?? '';
+        $request->merge(['mobile_no' => $mobile === '' ? null : '0'.ltrim($mobile, '0')]);
+
         $reviewed = $request->validate([
             'member_id' => ['required', 'integer'],
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'mobile_no' => ['nullable', 'regex:/^01[0-9]{9}$/'],
             'ssn' => ['nullable', 'digits:14'],
             'job_title' => ['nullable', 'string', 'max:255'],
             'birthdate' => ['nullable', 'date'],
+        ], [
+            'mobile_no.regex' => 'رقم الهاتف في الطلب غير صحيح',
+            'ssn.digits' => 'الرقم القومي في الطلب لازم يكون 14 رقم',
+            'birthdate.date' => 'تاريخ الميلاد في الطلب غير صحيح',
         ]);
 
         try {
