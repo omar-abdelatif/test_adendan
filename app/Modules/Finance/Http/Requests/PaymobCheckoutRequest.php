@@ -20,6 +20,7 @@ class PaymobCheckoutRequest extends FormRequest
             'amount' => ['required', 'numeric', 'gt:0', 'max:1000000'],
             'method' => ['required', 'in:card,wallet'],
             'wallet_number' => ['required_if:method,wallet', 'nullable', 'regex:/^01[0125][0-9]{8}$/'],
+            'sms_mobile' => ['nullable', 'regex:/^01[0125][0-9]{8}$/'],
             'idempotency_key' => ['required', 'string', 'min:16', 'max:64'],
         ];
     }
@@ -34,6 +35,7 @@ class PaymobCheckoutRequest extends FormRequest
         return [
             'wallet_number.required_if' => 'رقم المحفظة غير صحيح',
             'wallet_number.regex' => 'رقم المحفظة غير صحيح',
+            'sms_mobile.regex' => 'رقم الموبايل غير صحيح، اكتب 11 رقم يبدأ بـ 01',
             'amount.*' => 'المبلغ غير صحيح',
             'reference.*' => 'البند المطلوب دفعه غير صحيح',
             'purpose.*' => 'نوع الدفع غير صحيح',

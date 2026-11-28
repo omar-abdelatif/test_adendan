@@ -388,6 +388,39 @@ class PaymobCheckoutTest extends TestCase
         $this->assertSame('اشتراك', PaymentTransaction::sole()->transaction_type);
     }
 
+    public function test_paid_sms_checkout_activates_the_registered_mobile_by_default(): void
+    {
+        $payment = $this->openCheckout(['purpose' => 'sms', 'reference' => '', 'amount' => 60]);
+        $this->assertSame('01012345678', $payment->sms_mobile);
+
+        $this->webhook($payment)->assertOk();
+
+        $this->assertSame(1012345678, (int) SMSSubscribers::sole()->mobile_no);
+    }
+
+    public function test_sms_can_be_paid_for_another_number_which_replaces_the_old_one(): void
+    {
+        SMSSubscribers::create([
+            'member_id' => 15, 'mobile_no' => 1012345678, 'active_sms' => 0, 'amount' => 60,
+            'subscription_start_date' => now()->subYear()->toDateString(), 'subscription_expiry_date' => now()->subMonth()->toDateString(),
+        ]);
+        $payment = $this->openCheckout(['purpose' => 'sms', 'reference' => '', 'amount' => 60, 'sms_mobile' => '01198765432']);
+        $this->assertSame('01198765432', $payment->sms_mobile);
+
+        $this->webhook($payment)->assertOk();
+
+        $subscription = SMSSubscribers::sole();
+        $this->assertSame(1198765432, (int) $subscription->mobile_no);
+        $this->assertSame(1, (int) $subscription->active_sms);
+    }
+
+    public function test_an_invalid_sms_number_is_rejected(): void
+    {
+        $this->checkout(['purpose' => 'sms', 'reference' => '', 'amount' => 60, 'sms_mobile' => '0123'])
+            ->assertStatus(422)->assertJsonPath('message', 'رقم الموبايل غير صحيح، اكتب 11 رقم يبدأ بـ 01');
+        $this->assertSame(0, PaymobPayment::count());
+    }
+
     public function test_paid_free_donation_is_recorded_as_a_donation(): void
     {
         $payment = $this->openCheckout(['purpose' => 'donation', 'reference' => 'تبرع عام', 'amount' => 250]);

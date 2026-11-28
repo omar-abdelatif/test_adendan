@@ -43,6 +43,7 @@ class StartPaymobCheckout
         string $method,
         ?string $walletNumber,
         string $idempotencyKey,
+        ?string $smsMobile = null,
     ): array {
         $memberId = (int) $member->member_id;
 
@@ -66,6 +67,8 @@ class StartPaymobCheckout
                 'currency' => 'EGP',
                 'method' => $method,
                 'wallet_number_masked' => $walletNumber ? $this->mask($walletNumber) : null,
+                // The SMS number defaults to the registered mobile; the member may pick another.
+                'sms_mobile' => $purpose === OnlinePurpose::Sms ? ($smsMobile ?: $this->phone($member)) : null,
                 'status' => OnlineStatus::Pending,
                 'idempotency_key' => $idempotencyKey,
                 'expires_at' => now()->addMinutes((int) config('paymob.checkout_ttl_minutes', 60)),

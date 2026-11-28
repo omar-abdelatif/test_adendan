@@ -190,7 +190,9 @@ class RecordPaymobPayment
     {
         $entry = $this->ledger->record($this->entry(TransactionType::SmsSubscription, $payment, $amount, $method, $online));
 
-        $mobile = (string) Subscribers::where('member_id', $payment->member_id)->value('mobile_no');
+        // The number chosen at checkout; older checkouts fall back to the registered mobile.
+        $mobile = $payment->sms_mobile
+            ?: (string) Subscribers::where('member_id', $payment->member_id)->value('mobile_no');
         SmsSubscriptionPaid::dispatch($payment->member_id, $mobile, now());
 
         return $entry;

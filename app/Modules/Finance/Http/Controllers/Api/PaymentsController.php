@@ -35,6 +35,7 @@ class PaymentsController extends Controller
                 amount: Money::pounds($request->input('amount')),
                 method: $request->string('method')->value(),
                 walletNumber: $request->input('wallet_number'),
+                smsMobile: $request->input('sms_mobile'),
                 idempotencyKey: (string) $request->input('idempotency_key'),
             );
         } catch (FinanceException $e) {

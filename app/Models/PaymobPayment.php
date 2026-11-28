@@ -23,6 +23,7 @@ use Illuminate\Support\Carbon;
  * @property string $currency
  * @property string $method
  * @property string|null $wallet_number_masked
+ * @property string|null $sms_mobile
  * @property OnlineStatus $status
  * @property string $idempotency_key
  * @property string|null $paymob_order_id
@@ -38,7 +39,7 @@ class PaymobPayment extends Model
 {
     protected $fillable = [
         'public_id', 'member_id', 'purpose', 'reference', 'amount_cents', 'fee_cents', 'currency', 'method',
-        'wallet_number_masked', 'status', 'idempotency_key', 'paymob_order_id', 'paymob_transaction_id',
+        'wallet_number_masked', 'sms_mobile', 'status', 'idempotency_key', 'paymob_order_id', 'paymob_transaction_id',
         'checkout_url', 'expires_at', 'paid_at', 'receipt_inv_no', 'failure_reason', 'callback_payload',
     ];
 
